@@ -2350,57 +2350,92 @@ L_1_[93] = {
 		})
 	});
 	["Raids"] = L_1_[38]:MakeTab({
-		["Title"] = "Tab Fruit And Raid";
+		["Title"] = "فواكهة و رايدات";
 		["Icon"] = L_1_[2]({
 			"rbxassetid://1115598";
 			"6081"
 		})
 	}),
 	["Combat"] = L_1_[38]:MakeTab({
-		["Title"] = "Tab Local Player",
+		["Title"] = "لاعب",
 		["Icon"] = L_1_[2]({
 			"rbxassetid://1307565",
 			"1575"
 		})
 	}),
 	["Travel"] = L_1_[38]:MakeTab({
-		["Title"] = "Tab Teleport";
+		["Title"] = "تنقل";
 		["Icon"] = "locate"
 	});
 	["Shop"] = L_1_[38]:MakeTab({
-		["Title"] = "Tab Shopping";
+		["Title"] = "شوب";
 		["Icon"] = L_1_[2]({
 			"rbxassetid://6031265",
 			"976"
 		})
 	}),
 	["Misc"] = L_1_[38]:MakeTab({
-		["Title"] = "Tab Miscellaneous",
+		["Title"] = "متنوع",
 		["Icon"] = L_1_[2]({
 			"rbxassetid://1070978",
 			"3577"
 		})
 	})
 }
-L_1_[93]["Info"]:AddSection("Information")
+L_1_[93]["Info"]:AddSection("معلومة")
 L_1_[93]["Info"]:AddDiscordInvite({
-	["Name"] = "Gravity Hub",
+	["Name"] = "Axl Server",
 	["Description"] = L_1_[2]({
-		"Release Date [12/10/";
-		"2025]"
+		"Release Date [21/1/";
+		"2026]"
 	}),
 	["Logo"] = L_1_[2]({
-		"rbxassetid://7367578",
+		"rbxassetid://6782393070",
 		"7844710"
 	}),
 	["Invite"] = L_1_[2]({
-		"https://discord.gg/d",
-		"vqDj9tum4"
+		"https://discord.gg/f",
+		"2RwvcG8SW"
 	})
 })
-L_1_[93]["Info"]:AddSection("Status Server")
+
+-- DXL TELEGRAM (FIRST)
+L_1_[93]["Info"]:AddDiscordInvite({
+	["Name"] = "DXL TELEGRAM",
+	["Description"] = L_1_[2]({
+		"Official Telegram Channel";
+		"DXL Scripts & Updates"
+	}),
+	["Logo"] = L_1_[2]({
+		"rbxassetid://6782393070",
+		"7844710"
+	}),
+	["Invite"] = L_1_[2]({
+		"https://t.me/",
+		"dxlrob"
+	})
+})
+
+-- EX HUB (SECOND)
+L_1_[93]["Info"]:AddDiscordInvite({
+	["Name"] = "EX HUB",
+	["Description"] = L_1_[2]({
+		"EX Hub Official Channel";
+		"Scripts & News"
+	}),
+	["Logo"] = L_1_[2]({
+		"rbxassetid://6782393070",
+		"7844710"
+	}),
+	["Invite"] = L_1_[2]({
+		"https://t.me/",
+		"MMCMY"
+	})
+})
+
+L_1_[93]["Info"]:AddSection("خادم الحالة")
 Time = L_1_[93]["Info"]:AddParagraph({
-	["Title"] = "Time Zone";
+	["Title"] = "المنطقة الزمنية";
 	["Content"] = ""
 })
 function UpdateOS()
