@@ -2754,12 +2754,12 @@ spawn(function()
 	end
 end)
 AttackDropdown = L_1_[93]["Main"]:AddDropdown({
-	["Name"] = "Select Fast Delay";
+	["Name"] = "اختيار سرعه الضرب";
 	["Options"] = {
-		"Normal Attack",
-		"Fast Attack",
-		"Super Fast Attack";
-		"Gravity Attack"
+		"عادي",
+		"سريع",
+		"صاروخ ";
+		"سرعة اكسل 💀"
 	};
 	["Default"] = "Fast Attack",
 	["Callback"] = function(L_224_arg0)
@@ -2796,10 +2796,10 @@ spawn(function()
 	end
 end)
 L_1_[93]["Main"]:AddSection({
-	"Farming"
+	"الفارم"
 })
 FarmLevel = L_1_[93]["Main"]:AddToggle({
-	["Name"] = "Auto Farm Level",
+	["Name"] = "فارم لفل تلقائي ",
 	["Description"] = "";
 	["Default"] = false,
 	["Callback"] = function(L_226_arg0)
@@ -2928,7 +2928,7 @@ task["spawn"](function()
 	end
 end)
 ClosetMons = L_1_[93]["Main"]:AddToggle({
-	["Name"] = "Auto Farm Nearest";
+	["Name"] = "فارم قريب";
 	["Description"] = "",
 	["Default"] = false,
 	["Callback"] = function(L_238_arg0)
@@ -2958,7 +2958,7 @@ spawn(function()
 	end
 end)
 FactoryRaids = L_1_[93]["Main"]:AddToggle({
-	["Name"] = "Auto Factory Raid";
+	["Name"] = "فارم مصنع تلقائي ";
 	["Description"] = "",
 	["Default"] = false,
 	["Callback"] = function(L_243_arg0)
@@ -2987,7 +2987,7 @@ spawn(function()
 	end
 end)
 CastleRaids = L_1_[93]["Main"]:AddToggle({
-	["Name"] = "Auto Pirate Raid",
+	["Name"] = "فارم مصنع قراصنه عالم ثالث",
 	["Description"] = "";
 	["Default"] = false;
 	["Callback"] = function(L_246_arg0)
@@ -3060,7 +3060,7 @@ spawn(function()
 	end
 end)
 Ecto = L_1_[93]["Main"]:AddToggle({
-	["Name"] = "Auto Farm Ectoplasm",
+	["Name"] = "فارم بلازما تلقائي ",
 	["Description"] = "",
 	["Default"] = false,
 	["Callback"] = function(L_258_arg0)
@@ -3217,8 +3217,8 @@ L_1_[93]["Main"]:AddDropdown({
 })
 L_1_[93]["Main"]:AddToggle({
 	["Name"] = L_1_[2]({
-		"Auto Farm Level + Co";
-		"llect Gift"
+		"فارم لفل مع";
+		"التقاط هداية كريسمس"
 	});
 	["Description"] = L_1_[2]({
 		"Select Time And Sele",
@@ -3298,8 +3298,8 @@ task["spawn"](function()
 end)
 L_1_[93]["Main"]:AddToggle({
 	["Name"] = L_1_[2]({
-		"Auto Farm Candy + Co";
-		"llect Gift"
+		"فارم كاندب";
+		"اخذ هدية"
 	}),
 	["Description"] = L_1_[2]({
 		"Select Time And Sele";
@@ -3497,7 +3497,7 @@ task["spawn"](function()
 	end
 end)
 L_1_[93]["Main"]:AddToggle({
-	["Name"] = "Auto Farm Candy",
+	["Name"] = "فارم كاندي",
 	["Description"] = "";
 	["Default"] = false,
 	["Callback"] = function(L_292_arg0)
@@ -3607,11 +3607,11 @@ L_1_[6] = {
 	["GiftMap3"] = L_1_[94]
 }
 L_1_[93]["Main"]:AddDropdown({
-	["Name"] = "Select Island Gift";
+	["Name"] = "اختر هدية الجزيرة كرسمس";
 	["Options"] = {
-		"GiftMap1",
-		"GiftMap2",
-		"GiftMap3"
+		"جزيرة عالم اول",
+		"جزيرة عالم ثاني",
+		"جزيرة عالم ثالث"
 	},
 	["Callback"] = function(L_304_arg0)
 		local L_305_ = {}
@@ -3621,8 +3621,8 @@ L_1_[93]["Main"]:AddDropdown({
 })
 L_1_[93]["Main"]:AddToggle({
 	["Name"] = L_1_[2]({
-		"Teleport To Island G";
-		"ift"
+		"تنقل الى جزر";
+		"خاصة بل كريسمس"
 	});
 	["Default"] = false;
 	["Callback"] = function(L_306_arg0)
@@ -3643,7 +3643,7 @@ task["spawn"](function()
 	end
 end)
 L_1_[93]["Main"]:AddToggle({
-	["Name"] = "Auto TP Gift",
+	["Name"] = "تنقل الى هدية",
 	["Description"] = "";
 	["Default"] = false,
 	["Callback"] = function(L_309_arg0)
@@ -3653,8 +3653,8 @@ L_1_[93]["Main"]:AddToggle({
 	end
 })
 L_1_[93]["Main"]:AddToggle({
-	["Name"] = "Auto Collect Gift",
-	["Description"] = "Select Map",
+	["Name"] = "التقاط هدية",
+	["Description"] = "اختيار",
 	["Default"] = false;
 	["Callback"] = function(L_311_arg0)
 		local L_312_ = {}
@@ -3703,7 +3703,7 @@ task["spawn"](function()
 	end
 end)
 L_1_[93]["Main"]:AddToggle({
-	["Name"] = "Auto Winter Gacha";
+	["Name"] = "غاتشا الشتاء التلقائي";
 	["Description"] = "100 Candy";
 	["Default"] = false;
 	["Callback"] = function(L_317_arg0)
@@ -3727,7 +3727,7 @@ task["spawn"](function()
 	end
 end)
 L_1_[93]["Main"]:AddToggle({
-	["Name"] = "Auto Open Gift";
+	["Name"] = "هدية تفتح تلقائيًا";
 	["Default"] = false,
 	["Callback"] = function(L_320_arg0)
 		local L_321_ = {}
@@ -3802,7 +3802,7 @@ L_1_[93]["Main"]:AddDropdown({
 	end
 })
 L_1_[93]["Main"]:AddToggle({
-	["Name"] = "Auto UnStore Gift";
+	["Name"] = "هدية إلغاء التخزين التلقائي";
 	["Default"] = false,
 	["Callback"] = function(L_333_arg0)
 		local L_334_ = {}
@@ -3825,7 +3825,7 @@ spawn(function()
 	end
 end)
 AutoStoreGift = L_1_[93]["Main"]:AddToggle({
-	["Name"] = "Auto Store Gift",
+	["Name"] = "تخزين تلقائي هدية",
 	["Description"] = "",
 	["Default"] = false,
 	["Callback"] = function(L_336_arg0)
@@ -3988,7 +3988,7 @@ L_1_[93]["Main"]:AddSection({
 	"Collect Chest"
 })
 ChestTW = L_1_[93]["Main"]:AddToggle({
-	["Name"] = "Auto Farm Chest",
+	["Name"] = "فارم صناديق",
 	["Description"] = "";
 	["Default"] = false,
 	["Callback"] = function(L_347_arg0)
@@ -4032,7 +4032,7 @@ spawn(function()
 	end
 end)
 ChestBP = L_1_[93]["Main"]:AddToggle({
-	["Name"] = "Auto Chest Bypass";
+	["Name"] = "فارم صناديق v2";
 	["Description"] = "",
 	["Default"] = false;
 	["Callback"] = function(L_352_arg0)
@@ -4111,7 +4111,7 @@ ChestBP = L_1_[93]["Main"]:AddToggle({
 	end
 })
 StopI = L_1_[93]["Main"]:AddToggle({
-	["Name"] = "Stop Items";
+	["Name"] = "إيقاف العناصر";
 	["Description"] = "",
 	["Default"] = true,
 	["Callback"] = function(L_367_arg0)
@@ -4136,7 +4136,7 @@ L_1_[93]["Main"]:AddSection({
 	"Collect Berry"
 })
 Berry = L_1_[93]["Main"]:AddToggle({
-	["Name"] = "Auto Farm Berry";
+	["Name"] = "فارم بيري تلقائي ";
 	["Description"] = "";
 	["Default"] = false;
 	["Callback"] = function(L_369_arg0)
@@ -4184,8 +4184,8 @@ spawn(function()
 end)
 BerryH = L_1_[93]["Main"]:AddToggle({
 	["Name"] = L_1_[2]({
-		"Auto Farm Berry + Ho",
-		"p"
+		"فارم بيري مع",
+		"تبديل سيرفرات "
 	}),
 	["Description"] = "";
 	["Default"] = false,
@@ -4333,7 +4333,7 @@ if World2 then
 end
 if World3 then
 	L_1_[93]["Main"]:AddDropdown({
-		["Name"] = "Select Mob",
+		["Name"] = "اختار الموب",
 		["Default"] = false,
 		["Options"] = {
 			"Pirate Millionaire";
@@ -4383,7 +4383,7 @@ if World3 then
 	})
 end
 L_1_[93]["Main"]:AddToggle({
-	["Name"] = "Auto Kill Mob";
+	["Name"] = "قتل موب تلقائي ";
 	["Default"] = false,
 	["Callback"] = function(L_405_arg0)
 		local L_406_ = {}
@@ -4414,7 +4414,7 @@ spawn(function()
 	end
 end)
 L_1_[93]["Main"]:AddSection({
-	"Farm All Island"
+	" فارم كل جزر حرفيا"
 })
 L_1_[65] = {
 	["Pirates"] = {
@@ -4735,7 +4735,7 @@ elseif World3 then
 	L_1_[60] = L_1_[98]
 end
 L_1_[93]["Main"]:AddToggle({
-	["Name"] = "Auto Farm All Island",
+	["Name"] = "فارم جميع جزر",
 	["Default"] = false;
 	["Callback"] = function(L_416_arg0)
 		local L_417_ = {}
@@ -4817,7 +4817,7 @@ spawn(function()
 	end
 end)
 EliteQ = L_1_[93]["Main"]:AddToggle({
-	["Name"] = "Auto Farm Elite";
+	["Name"] = "فارم هنتر";
 	["Description"] = "",
 	["Default"] = false,
 	["Callback"] = function(L_427_arg0)
@@ -4894,8 +4894,8 @@ spawn(function()
 end)
 EliteH = L_1_[93]["Main"]:AddToggle({
 	["Name"] = L_1_[2]({
-		"Auto Farm Elite + Ho";
-		"p"
+		"فارم هنتر مع";
+		"تبديل سيرفرات"
 	}),
 	["Description"] = "";
 	["Default"] = false;
@@ -5014,12 +5014,12 @@ spawn(function()
 	end
 end)
 L_1_[93]["Main"]:AddSection({
-	"Farm Rip Indra"
+	"راب اندرا خايس"
 })
 L_1_[93]["Main"]:AddToggle({
 	["Name"] = L_1_[2]({
-		"Auto Attack Rip Indr",
-		"a"
+		"فارم اندرا تلقائي ",
+		"اندرا خايس"
 	}),
 	["Description"] = "";
 	["Default"] = false,
@@ -5050,7 +5050,7 @@ spawn(function()
 	end
 end)
 L_1_[93]["Main"]:AddToggle({
-	["Name"] = "Auto Unlocked Haki";
+	["Name"] = "هاكي مفتوح تلقائيًا";
 	["Description"] = "",
 	["Default"] = false;
 	["Callback"] = function(L_466_arg0)
@@ -5118,10 +5118,10 @@ spawn(function()
 	end
 end)
 L_1_[93]["Main"]:AddSection({
-	"Farming Cake"
+	"فارم جزر بيق مام"
 })
 MobKilled = L_1_[93]["Main"]:AddParagraph({
-	["Title"] = "Cake Princes :";
+	["Title"] = "كاتاكوري v1 :";
 	["Content"] = ""
 })
 spawn(function()
@@ -5137,8 +5137,8 @@ spawn(function()
 end)
 Cake = L_1_[93]["Main"]:AddToggle({
 	["Name"] = L_1_[2]({
-		"Auto Farm Cake Princ",
-		"e"
+		"فارم",
+		"كاتاكوري v1"
 	}),
 	["Description"] = "",
 	["Default"] = false,
@@ -5235,7 +5235,7 @@ spawn(function()
 	end
 end)
 CakeQ = L_1_[93]["Main"]:AddToggle({
-	["Name"] = "Accept Quests";
+	["Name"] = "قبول المهام";
 	["Description"] = "";
 	["Default"] = false;
 	["Callback"] = function(L_486_arg0)
@@ -5246,8 +5246,8 @@ CakeQ = L_1_[93]["Main"]:AddToggle({
 })
 CakeSM = L_1_[93]["Main"]:AddToggle({
 	["Name"] = L_1_[2]({
-		"Auto Summon Cake Pri",
-		"nce"
+		" استدعاء كاتاكوري ",
+		"v1"
 	}),
 	["Description"] = "";
 	["Default"] = false;
