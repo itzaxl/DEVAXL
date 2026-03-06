@@ -1,4 +1,4 @@
---[[ Protected by loadstringring ]]
+--[[ Protected by AXL developed ]]
 local _0xA1=function(a)return a end
 local _0xB2=string.char
 local _0xC3=table.concat
