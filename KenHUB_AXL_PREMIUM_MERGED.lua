@@ -1343,21 +1343,30 @@ _G.applyLoadedToggleStates = function()
             settingsFrame.Visible = true
         end
         if CONFIG.UI.CurrentTab and sections[CONFIG.UI.CurrentTab] then
-            activeSection = CONFIG.UI.CurrentTab
-            for name, section in pairs(sections) do
-                section.Visible = (name == CONFIG.UI.CurrentTab)
+            -- Switch to saved tab using new system
+            local targetTab = CONFIG.UI.CurrentTab
+            if activeSection and sections[activeSection] then
+                sections[activeSection].Visible = false
             end
-            -- Update sidebar button colors
-            for _, button in pairs(sidebar:GetChildren()) do
-                if button:IsA("TextButton") and button.Name:match("Button$") then
-                    local sectionName = button.Name:gsub("Button", "")
-                    if sectionName == CONFIG.UI.CurrentTab then
-                        button.BackgroundColor3 = CONFIG.Colors.Accent
-                    else
-                        button.BackgroundColor3 = CONFIG.Colors.Sidebar
-                    end
-                end
-                end
+            for sn, tb in pairs(tabBtns) do
+                pcall(function()
+                    TweenService:Create(tb.btn, TweenInfo.new(0.13), {BackgroundColor3 = THEME.ROW}):Play()
+                    tb.bar.Visible = false
+                    tb.nameL.TextColor3 = THEME.SUB
+                    tb.emojiL.TextColor3 = THEME.SUB
+                end)
+            end
+            local tb = tabBtns[targetTab]
+            if tb then
+                pcall(function()
+                    TweenService:Create(tb.btn, TweenInfo.new(0.13), {BackgroundColor3 = THEME.ROW_HOV}):Play()
+                    tb.bar.Visible = true
+                    tb.nameL.TextColor3 = THEME.GOLD
+                    tb.emojiL.TextColor3 = THEME.GOLD
+                end)
+            end
+            activeSection = targetTab
+            if sections[targetTab] then sections[targetTab].Visible = true end
             end
 
             -- Initialize other features after toggles are recreated. Wrap in pcalls to avoid aborting this thread.
@@ -1997,904 +2006,2441 @@ _G.createCircularToggleUI = function(toggleName, getState, setState)
 end
 
 
---=============================================================
---  KEN HUB × AXL PREMIUM  |  واجهة عربية كاملة من الصفر
---=============================================================
+--=========================================================
+--=========================================================
+-- AXL HUB BRAINROT NEW 5V [FREE] — واجهة جديدة كاملة
+--=========================================================
 
------------- ثيم الألوان (أسود × ذهبي) ---------------------
-local C = {
+-- ======= THEME =======
+local THEME = {
     BG        = Color3.fromRGB(7,   7,   7),
-    PANEL     = Color3.fromRGB(14,  14,  14),
-    ROW       = Color3.fromRGB(20,  20,  20),
-    SIDEBAR   = Color3.fromRGB(11,  11,  11),
-    GOLD      = Color3.fromRGB(255, 200,  40),
-    GOLD2     = Color3.fromRGB(160, 118,  18),
-    GOLD3     = Color3.fromRGB(55,  38,   3),
-    WHITE     = Color3.fromRGB(238, 238, 238),
+    BAR       = Color3.fromRGB(11,  11,  11),
+    SIDE      = Color3.fromRGB(13,  13,  13),
+    ROW       = Color3.fromRGB(19,  19,  19),
+    ROW_HOV   = Color3.fromRGB(27,  27,  27),
+    STROKE    = Color3.fromRGB(42,  42,  42),
+    GOLD      = Color3.fromRGB(255, 195,  40),
+    GOLD_D    = Color3.fromRGB(150, 110,  15),
+    TEXT      = Color3.fromRGB(238, 238, 238),
     SUB       = Color3.fromRGB(120, 120, 120),
-    STROKE    = Color3.fromRGB(45,  34,   4),
-    GREEN     = Color3.fromRGB(38,  200,  85),
-    RED       = Color3.fromRGB(210,  45,  45),
-    SWON      = Color3.fromRGB(255, 185,  28),
-    SWOFF     = Color3.fromRGB(42,  42,  42),
-    HBTN      = Color3.fromRGB(28,  21,   2),
+    GREEN     = Color3.fromRGB(45,  200,  85),
+    RED       = Color3.fromRGB(215,  50,  50),
+    WHITE     = Color3.fromRGB(255, 255, 255),
 }
 
------------- إنشاء الـ ScreenGui الرئيسي ---------------------
-local screenGui      = createProtectedScreenGui((namePrefix or '')..'KenHUB_AXL_GUI')
-local circularGui    = createProtectedScreenGui("KenHUB_FloatToggles")
-protectGuiElement(circularGui)
-
------------- الإطار الرئيسي ----------------------------------
-local mainFrame = Instance.new("Frame")
-mainFrame.Name           = "Main"
-mainFrame.Size           = UDim2.new(0, 630, 0, 410)
-mainFrame.Position       = UDim2.new(0.5,-315, 0.5,-205)
-mainFrame.BackgroundColor3 = C.BG
-mainFrame.Active         = true
-mainFrame.Draggable      = true
-mainFrame.ClipsDescendants = true
-mainFrame.Parent         = screenGui
-protectGuiElement(mainFrame)
-Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 14)
-local _mStroke = Instance.new("UIStroke", mainFrame)
-_mStroke.Thickness = 1.5 ; _mStroke.Color = C.GOLD2 ; _mStroke.Transparency = 0.25
--- خط ذهبي تزييني في الأعلى
-local _topLine = Instance.new("Frame", mainFrame)
-_topLine.Size = UDim2.new(1,0,0,2) ; _topLine.BackgroundColor3 = C.GOLD
-_topLine.BorderSizePixel = 0 ; _topLine.ZIndex = 5
-
------------- شريط العنوان (TopBar) ---------------------------
-local topBar = Instance.new("Frame", mainFrame)
-topBar.Size = UDim2.new(1,0,0,46)
-topBar.BackgroundColor3 = Color3.fromRGB(10,10,10)
-topBar.BorderSizePixel = 0
-Instance.new("UICorner", topBar).CornerRadius = UDim.new(0,14)
--- خط فاصل أسفل TopBar
-local _tbLine = Instance.new("Frame", topBar)
-_tbLine.Size = UDim2.new(1,0,0,1)
-_tbLine.Position = UDim2.new(0,0,1,-1)
-_tbLine.BackgroundColor3 = C.GOLD2
-_tbLine.BackgroundTransparency = 0.35
-_tbLine.BorderSizePixel = 0
-
--- لوقو K
-local _logo = Instance.new("Frame", topBar)
-_logo.Size = UDim2.new(0,32,0,32)
-_logo.Position = UDim2.new(0,10,0.5,-16)
-_logo.BackgroundColor3 = C.GOLD3
-Instance.new("UICorner", _logo).CornerRadius = UDim.new(0,8)
-Instance.new("UIStroke", _logo).Color = C.GOLD
-local _logoL = Instance.new("TextLabel", _logo)
-_logoL.Size = UDim2.new(1,0,1,0) ; _logoL.BackgroundTransparency = 1
-_logoL.Text = "K" ; _logoL.Font = Enum.Font.GothamBlack
-_logoL.TextSize = 17 ; _logoL.TextColor3 = C.GOLD
-
--- عنوان
-local _titleL = Instance.new("TextLabel", topBar)
-_titleL.Position = UDim2.new(0,50,0,4)
-_titleL.Size = UDim2.new(0,280,0,22)
-_titleL.BackgroundTransparency = 1
-_titleL.Text = "كن هاب  ×  AXL PREMIUM"
-_titleL.Font = Enum.Font.GothamBlack
-_titleL.TextSize = 15
-_titleL.TextColor3 = C.GOLD
-_titleL.TextXAlignment = Enum.TextXAlignment.Left
-
-local _subL = Instance.new("TextLabel", topBar)
-_subL.Position = UDim2.new(0,50,0,26)
-_subL.Size = UDim2.new(0,260,0,14)
-_subL.BackgroundTransparency = 1
-_subL.Text = "v1.67  |  الكل مدمج بالعربي"
-_subL.Font = Enum.Font.Gotham
-_subL.TextSize = 10
-_subL.TextColor3 = C.GOLD2
-_subL.TextXAlignment = Enum.TextXAlignment.Left
-
--- helper: زر في TopBar
-local function mkTopBtn(sym, xOff, bgCol)
-    local b = Instance.new("TextButton", topBar)
-    b.Size = UDim2.new(0,30,0,30)
-    b.Position = UDim2.new(1, xOff, 0.5,-15)
-    b.BackgroundColor3 = bgCol or C.ROW
-    b.Text = sym ; b.TextColor3 = C.WHITE
-    b.Font = Enum.Font.GothamBold ; b.TextSize = 18
-    b.AutoButtonColor = false
-    Instance.new("UICorner", b).CornerRadius = UDim.new(0,8)
-    Instance.new("UIStroke", b).Color = C.STROKE
-    b.MouseEnter:Connect(function() TweenService:Create(b,TweenInfo.new(.1),{BackgroundColor3=C.HBTN}):Play() end)
-    b.MouseLeave:Connect(function() TweenService:Create(b,TweenInfo.new(.1),{BackgroundColor3=bgCol or C.ROW}):Play() end)
-    return b
+-- ======= SOUND HELPER =======
+local function playClick()
+    pcall(function()
+        local s = Instance.new("Sound", workspace)
+        s.SoundId = "rbxassetid://6042053626"
+        s.Volume = 0.3
+        s.RollOffMaxDistance = 0
+        s:Play()
+        game:GetService("Debris"):AddItem(s, 2)
+    end)
 end
-local closeBtn    = mkTopBtn("×", -38, Color3.fromRGB(150,25,25))
-local minimizeBtn = mkTopBtn("−", -76)
-local settingsBtn = mkTopBtn("⚙", -114)
+local function playToggle()
+    pcall(function()
+        local s = Instance.new("Sound", workspace)
+        s.SoundId = "rbxassetid://9119713951"
+        s.Volume = 0.25
+        s.RollOffMaxDistance = 0
+        s:Play()
+        game:GetService("Debris"):AddItem(s, 2)
+    end)
+end
+local function playOpen()
+    pcall(function()
+        local s = Instance.new("Sound", workspace)
+        s.SoundId = "rbxassetid://6895079853"
+        s.Volume = 0.2
+        s.RollOffMaxDistance = 0
+        s:Play()
+        game:GetService("Debris"):AddItem(s, 2)
+    end)
+end
 
--- وظيفة الإغلاق
-local isMinimized = false
-closeBtn.MouseButton1Click:Connect(function()
-    TweenService:Create(mainFrame,TweenInfo.new(.2),{Size=UDim2.new(0,0,0,0)}):Play()
-    task.wait(.22) ; screenGui:Destroy()
-end)
-minimizeBtn.MouseButton1Click:Connect(function()
-    isMinimized = not isMinimized
-    if isMinimized then
-        TweenService:Create(mainFrame,TweenInfo.new(.2),{Size=UDim2.new(0,630,0,46)}):Play()
-    else
-        TweenService:Create(mainFrame,TweenInfo.new(.2),{Size=UDim2.new(0,630,0,410)}):Play()
-    end
-end)
+-- ======= SCREEN GUI =======
+local screenGui = createProtectedScreenGui((namePrefix or '') .. 'ESPVisuals')
 
------------- الشريط الجانبي (Sidebar) -----------------------
-local SIDEBAR_W = 132
+-- ======= MAIN FRAME =======
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "AXLMain"
+mainFrame.Size = UDim2.new(0, 610, 0, 410)
+mainFrame.Position = UDim2.new(0.5, -305, 0.5, -205)
+mainFrame.BackgroundColor3 = THEME.BG
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.ClipsDescendants = true
+mainFrame.Parent = screenGui
+pcall(function() protectGuiElement(mainFrame) end)
+local mCorner = Instance.new("UICorner", mainFrame)
+mCorner.CornerRadius = UDim.new(0, 12)
+local mStroke = Instance.new("UIStroke", mainFrame)
+mStroke.Thickness = 1.5
+mStroke.Color = THEME.GOLD_D
+mStroke.Transparency = 0.4
+
+-- ======= TOP BAR =======
+local topBar = Instance.new("Frame", mainFrame)
+topBar.Name = "TopBar"
+topBar.BackgroundColor3 = THEME.BAR
+topBar.Size = UDim2.new(1, 0, 0, 46)
+topBar.BorderSizePixel = 0
+Instance.new("UICorner", topBar).CornerRadius = UDim.new(0, 12)
+-- bottom filler so corners don't show at bottom of topbar
+local tbFill = Instance.new("Frame", topBar)
+tbFill.BackgroundColor3 = THEME.BAR
+tbFill.Size = UDim2.new(1, 0, 0, 12)
+tbFill.Position = UDim2.new(0, 0, 1, -12)
+tbFill.BorderSizePixel = 0
+-- gold separator line
+local tbLine = Instance.new("Frame", topBar)
+tbLine.BackgroundColor3 = THEME.GOLD_D
+tbLine.Size = UDim2.new(1, 0, 0, 1)
+tbLine.Position = UDim2.new(0, 0, 1, -1)
+tbLine.BackgroundTransparency = 0.5
+tbLine.BorderSizePixel = 0
+
+-- Title
+local titleLbl = Instance.new("TextLabel", topBar)
+titleLbl.BackgroundTransparency = 1
+titleLbl.Position = UDim2.new(0, 12, 0, 0)
+titleLbl.Size = UDim2.new(0.55, 0, 1, 0)
+titleLbl.Text = "⭐  AXL HUB BRAINROT NEW 5V [FREE]"
+titleLbl.Font = Enum.Font.GothamBold
+titleLbl.TextSize = 14
+titleLbl.TextColor3 = THEME.GOLD
+titleLbl.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Buttons container (right side)
+local function makeTopBtn(xOff, label, bgColor)
+    local btn = Instance.new("TextButton", topBar)
+    btn.BackgroundColor3 = bgColor or THEME.ROW
+    btn.Text = label
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 16
+    btn.TextColor3 = THEME.WHITE
+    btn.AutoButtonColor = false
+    btn.Size = UDim2.new(0, 32, 0, 32)
+    btn.Position = UDim2.new(1, xOff, 0.5, -16)
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
+    return btn
+end
+
+local closeBtn    = makeTopBtn(-38,  "×", THEME.RED)
+local minimizeBtn = makeTopBtn(-76,  "−", THEME.ROW)
+local settingsBtn = makeTopBtn(-114, "⚙", THEME.ROW)
+
+-- ======= SIDEBAR =======
 local sidebar = Instance.new("Frame", mainFrame)
-sidebar.Size = UDim2.new(0,SIDEBAR_W,1,-46)
-sidebar.Position = UDim2.new(0,0,0,46)
-sidebar.BackgroundColor3 = C.SIDEBAR
+sidebar.Name = "Sidebar"
+sidebar.BackgroundColor3 = THEME.SIDE
+sidebar.Size = UDim2.new(0, 152, 1, -46)
+sidebar.Position = UDim2.new(0, 0, 0, 46)
 sidebar.BorderSizePixel = 0
-local _sbLine = Instance.new("Frame", sidebar)
-_sbLine.Size = UDim2.new(0,1,1,0)
-_sbLine.Position = UDim2.new(1,-1,0,0)
-_sbLine.BackgroundColor3 = C.GOLD2
-_sbLine.BackgroundTransparency = 0.45
-_sbLine.BorderSizePixel = 0
-local _sbLayout = Instance.new("UIListLayout", sidebar)
-_sbLayout.Padding = UDim.new(0,4)
-_sbLayout.FillDirection = Enum.FillDirection.Vertical
-_sbLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-_sbLayout.SortOrder = Enum.SortOrder.LayoutOrder
-local _sbPad = Instance.new("UIPadding", sidebar)
-_sbPad.PaddingTop = UDim.new(0,8)
+-- right separator
+local sideR = Instance.new("Frame", sidebar)
+sideR.BackgroundColor3 = THEME.GOLD_D
+sideR.Size = UDim2.new(0, 1, 1, 0)
+sideR.Position = UDim2.new(1, -1, 0, 0)
+sideR.BackgroundTransparency = 0.65
+sideR.BorderSizePixel = 0
 
------------- منطقة المحتوى ----------------------------------
+local sideLayout = Instance.new("UIListLayout", sidebar)
+sideLayout.Padding = UDim.new(0, 4)
+sideLayout.FillDirection = Enum.FillDirection.Vertical
+sideLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+sideLayout.VerticalAlignment = Enum.VerticalAlignment.Top
+sideLayout.SortOrder = Enum.SortOrder.LayoutOrder
+local sidePad = Instance.new("UIPadding", sidebar)
+sidePad.PaddingTop = UDim.new(0, 9)
+
+-- ======= CONTENT AREA =======
 local contentArea = Instance.new("Frame", mainFrame)
-contentArea.Size = UDim2.new(1,-SIDEBAR_W,1,-46)
-contentArea.Position = UDim2.new(0,SIDEBAR_W,0,46)
+contentArea.Name = "ContentArea"
 contentArea.BackgroundTransparency = 1
+contentArea.Position = UDim2.new(0, 152, 0, 46)
+contentArea.Size = UDim2.new(1, -152, 1, -46)
 
------------- نافذة الإعدادات --------------------------------
+-- ======= SETTINGS FRAME =======
 local settingsFrame = Instance.new("Frame", screenGui)
-settingsFrame.Size = UDim2.new(0,430,0,360)
-settingsFrame.Position = UDim2.new(0.5,-215,0.5,-180)
-settingsFrame.BackgroundColor3 = C.BG
+settingsFrame.Name = "SettingsFrame"
+settingsFrame.Size = UDim2.new(0, 430, 0, 370)
+settingsFrame.Position = UDim2.new(0.5, -215, 0.5, -185)
+settingsFrame.BackgroundColor3 = Color3.fromRGB(12,12,12)
+settingsFrame.Visible = false
 settingsFrame.Active = true
 settingsFrame.Draggable = true
-settingsFrame.ClipsDescendants = true
-settingsFrame.Visible = false
-Instance.new("UICorner", settingsFrame).CornerRadius = UDim.new(0,14)
-local _sfStroke = Instance.new("UIStroke", settingsFrame)
-_sfStroke.Thickness = 1.5 ; _sfStroke.Color = C.GOLD2
+Instance.new("UICorner", settingsFrame).CornerRadius = UDim.new(0, 12)
+local sfStroke = Instance.new("UIStroke", settingsFrame)
+sfStroke.Thickness = 1.5
+sfStroke.Color = THEME.GOLD_D
+sfStroke.Transparency = 0.4
 
-local _sfTop = Instance.new("Frame", settingsFrame)
-_sfTop.Size = UDim2.new(1,0,0,44)
-_sfTop.BackgroundColor3 = C.SIDEBAR
-_sfTop.BorderSizePixel = 0
-Instance.new("UICorner", _sfTop).CornerRadius = UDim.new(0,14)
-local _sfTitle = Instance.new("TextLabel", _sfTop)
-_sfTitle.Size = UDim2.new(1,-50,1,0) ; _sfTitle.Position = UDim2.new(0,14,0,0)
-_sfTitle.BackgroundTransparency = 1 ; _sfTitle.Text = "⚙  الإعدادات"
-_sfTitle.Font = Enum.Font.GothamBold ; _sfTitle.TextSize = 15
-_sfTitle.TextColor3 = C.GOLD ; _sfTitle.TextXAlignment = Enum.TextXAlignment.Left
-local _sfClose = Instance.new("TextButton", _sfTop)
-_sfClose.Size = UDim2.new(0,28,0,28) ; _sfClose.Position = UDim2.new(1,-36,0.5,-14)
-_sfClose.BackgroundColor3 = Color3.fromRGB(140,22,22)
-_sfClose.Text = "×" ; _sfClose.TextColor3 = C.WHITE
-_sfClose.Font = Enum.Font.GothamBold ; _sfClose.TextSize = 16 ; _sfClose.AutoButtonColor = false
-Instance.new("UICorner", _sfClose).CornerRadius = UDim.new(0,8)
-_sfClose.MouseButton1Click:Connect(function() settingsFrame.Visible = false end)
-settingsBtn.MouseButton1Click:Connect(function() settingsFrame.Visible = not settingsFrame.Visible end)
+local sfBar = Instance.new("Frame", settingsFrame)
+sfBar.BackgroundColor3 = THEME.BAR
+sfBar.Size = UDim2.new(1, 0, 0, 46)
+sfBar.BorderSizePixel = 0
+Instance.new("UICorner", sfBar).CornerRadius = UDim.new(0, 12)
+local sfFill = Instance.new("Frame", sfBar)
+sfFill.BackgroundColor3 = THEME.BAR
+sfFill.Size = UDim2.new(1, 0, 0, 12)
+sfFill.Position = UDim2.new(0, 0, 1, -12)
+sfFill.BorderSizePixel = 0
+local sfLine = Instance.new("Frame", sfBar)
+sfLine.BackgroundColor3 = THEME.GOLD_D
+sfLine.Size = UDim2.new(1, 0, 0, 1)
+sfLine.Position = UDim2.new(0, 0, 1, -1)
+sfLine.BackgroundTransparency = 0.5
+sfLine.BorderSizePixel = 0
+
+local sfTitle = Instance.new("TextLabel", sfBar)
+sfTitle.BackgroundTransparency = 1
+sfTitle.Position = UDim2.new(0, 12, 0, 0)
+sfTitle.Size = UDim2.new(1, -50, 1, 0)
+sfTitle.Text = "⚙  الإعدادات"
+sfTitle.Font = Enum.Font.GothamBold
+sfTitle.TextSize = 14
+sfTitle.TextColor3 = THEME.GOLD
+sfTitle.TextXAlignment = Enum.TextXAlignment.Left
+
+local sfClose = Instance.new("TextButton", sfBar)
+sfClose.BackgroundColor3 = THEME.RED
+sfClose.Text = "×"
+sfClose.Font = Enum.Font.GothamBold
+sfClose.TextSize = 16
+sfClose.TextColor3 = THEME.WHITE
+sfClose.AutoButtonColor = false
+sfClose.Size = UDim2.new(0, 32, 0, 32)
+sfClose.Position = UDim2.new(1, -42, 0.5, -16)
+Instance.new("UICorner", sfClose).CornerRadius = UDim.new(0, 8)
 
 local settingsContent = Instance.new("ScrollingFrame", settingsFrame)
 settingsContent.Name = "SettingsContent"
-settingsContent.Size = UDim2.new(1,-14,1,-48)
-settingsContent.Position = UDim2.new(0,7,0,48)
 settingsContent.BackgroundTransparency = 1
-settingsContent.CanvasSize = UDim2.new(0,0,0,0)
+settingsContent.Position = UDim2.new(0, 10, 0, 52)
+settingsContent.Size = UDim2.new(1, -20, 1, -57)
+settingsContent.CanvasSize = UDim2.new(0, 0, 0, 0)
 settingsContent.ScrollBarThickness = 3
-settingsContent.ScrollBarImageColor3 = C.GOLD2
-local _scLayout = Instance.new("UIListLayout", settingsContent)
-_scLayout.Padding = UDim.new(0,7)
-_scLayout.FillDirection = Enum.FillDirection.Vertical
-_scLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-_scLayout.SortOrder = Enum.SortOrder.LayoutOrder
-_scLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-    pcall(function() settingsContent.CanvasSize = UDim2.new(0,0,0,_scLayout.AbsoluteContentSize.Y+10) end)
+settingsContent.ScrollBarImageColor3 = THEME.GOLD_D
+settingsContent.VerticalScrollBarInset = Enum.ScrollBarInset.ScrollBar
+settingsContent.BorderSizePixel = 0
+
+local settingsLayout = Instance.new("UIListLayout", settingsContent)
+settingsLayout.Padding = UDim.new(0, 7)
+settingsLayout.FillDirection = Enum.FillDirection.Vertical
+settingsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+settingsLayout.SortOrder = Enum.SortOrder.LayoutOrder
+settingsLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    pcall(function()
+        settingsContent.CanvasSize = UDim2.new(0, 0, 0, settingsLayout.AbsoluteContentSize.Y + 12)
+    end)
 end)
 
------------- مساعدات الـ UI ----------------------------------
-local sections     = {}
+-- ======= TOP BAR LOGIC =======
+local isMinimized = false
+minimizeBtn.MouseButton1Click:Connect(function()
+    playClick()
+    isMinimized = not isMinimized
+    TweenService:Create(mainFrame, TweenInfo.new(0.22, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+        Size = isMinimized and UDim2.new(0, 610, 0, 46) or UDim2.new(0, 610, 0, 410)
+    }):Play()
+    minimizeBtn.Text = isMinimized and "+" or "−"
+end)
+closeBtn.MouseButton1Click:Connect(function()
+    playClick()
+    TweenService:Create(mainFrame, TweenInfo.new(0.18, Enum.EasingStyle.Quad), {
+        Size = UDim2.new(0, 0, 0, 0),
+        BackgroundTransparency = 1
+    }):Play()
+    task.wait(0.2)
+    pcall(function() screenGui:Destroy() end)
+end)
+settingsBtn.MouseButton1Click:Connect(function()
+    playOpen()
+    settingsFrame.Visible = not settingsFrame.Visible
+end)
+sfClose.MouseButton1Click:Connect(function()
+    playClick()
+    settingsFrame.Visible = false
+end)
+
+-- ======= SECTIONS =======
+local sections = {}
 local activeSection = nil
 
--- إنشاء قسم (ScrollingFrame)
 local function createSection(name)
     local sf = Instance.new("ScrollingFrame", contentArea)
-    sf.Name = name ; sf.BackgroundTransparency = 1
-    sf.Size = UDim2.new(1,-12,1,0)
-    sf.Position = UDim2.new(0,6,0,0)
-    sf.CanvasSize = UDim2.new(0,0,0,0)
+    sf.Name = name
+    sf.BackgroundTransparency = 1
+    sf.Size = UDim2.new(1, -12, 1, -8)
+    sf.Position = UDim2.new(0, 6, 0, 4)
+    sf.CanvasSize = UDim2.new(0, 0, 0, 0)
     sf.ScrollBarThickness = 3
-    sf.ScrollBarImageColor3 = C.GOLD2
+    sf.ScrollBarImageColor3 = THEME.GOLD_D
     sf.VerticalScrollBarInset = Enum.ScrollBarInset.ScrollBar
+    sf.BorderSizePixel = 0
     sf.Visible = false
+
     local ll = Instance.new("UIListLayout", sf)
-    ll.Padding = UDim.new(0,6)
+    ll.Padding = UDim.new(0, 5)
     ll.FillDirection = Enum.FillDirection.Vertical
     ll.HorizontalAlignment = Enum.HorizontalAlignment.Center
     ll.SortOrder = Enum.SortOrder.LayoutOrder
     ll:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-        pcall(function() sf.CanvasSize = UDim2.new(0,0,0,ll.AbsoluteContentSize.Y+10) end)
+        pcall(function()
+            sf.CanvasSize = UDim2.new(0, 0, 0, ll.AbsoluteContentSize.Y + 10)
+        end)
     end)
+
     sections[name] = sf
     return sf
 end
 
--- إنشاء زر تاب
-local tabActivators = {}
-local function createTabButton(labelAR, sectionName, icon)
+-- ======= TAB BUTTONS =======
+local tabBtns = {}
+
+local function createTabButton(label, sectionName, emoji)
     local btn = Instance.new("TextButton", sidebar)
-    btn.Name = sectionName.."TabBtn"
-    btn.Size = UDim2.new(1,-10,0,36)
-    btn.BackgroundColor3 = C.SIDEBAR
-    btn.Text = "" ; btn.AutoButtonColor = false
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0,9)
+    btn.Name = sectionName .. "Button"
+    btn.Size = UDim2.new(1, -12, 0, 37)
+    btn.BackgroundColor3 = THEME.ROW
+    btn.Text = ""
+    btn.AutoButtonColor = false
+    btn.BorderSizePixel = 0
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
 
-    local _bar = Instance.new("Frame", btn)
-    _bar.Size = UDim2.new(0,3,0.65,0)
-    _bar.Position = UDim2.new(0,0,0.175,0)
-    _bar.BackgroundColor3 = C.GOLD
-    _bar.Visible = false
-    Instance.new("UICorner", _bar).CornerRadius = UDim.new(1,0)
+    -- active indicator bar (left side)
+    local bar = Instance.new("Frame", btn)
+    bar.Size = UDim2.new(0, 3, 0.5, 0)
+    bar.Position = UDim2.new(0, 0, 0.25, 0)
+    bar.BackgroundColor3 = THEME.GOLD
+    bar.BorderSizePixel = 0
+    Instance.new("UICorner", bar).CornerRadius = UDim.new(0, 2)
+    bar.Visible = false
 
-    local _ico = Instance.new("TextLabel", btn)
-    _ico.Size = UDim2.new(0,22,1,0) ; _ico.Position = UDim2.new(0,8,0,0)
-    _ico.BackgroundTransparency = 1 ; _ico.Text = icon or "•"
-    _ico.Font = Enum.Font.GothamBold ; _ico.TextSize = 13 ; _ico.TextColor3 = C.GOLD2
+    local emojiL = Instance.new("TextLabel", btn)
+    emojiL.BackgroundTransparency = 1
+    emojiL.Position = UDim2.new(0, 9, 0, 0)
+    emojiL.Size = UDim2.new(0, 20, 1, 0)
+    emojiL.Text = emoji
+    emojiL.Font = Enum.Font.GothamBold
+    emojiL.TextSize = 13
+    emojiL.TextColor3 = THEME.SUB
 
-    local _lbl = Instance.new("TextLabel", btn)
-    _lbl.Size = UDim2.new(1,-34,1,0) ; _lbl.Position = UDim2.new(0,32,0,0)
-    _lbl.BackgroundTransparency = 1 ; _lbl.Text = labelAR
-    _lbl.Font = Enum.Font.GothamBold ; _lbl.TextSize = 12
-    _lbl.TextColor3 = C.SUB ; _lbl.TextXAlignment = Enum.TextXAlignment.Left
+    local nameL = Instance.new("TextLabel", btn)
+    nameL.BackgroundTransparency = 1
+    nameL.Position = UDim2.new(0, 31, 0, 0)
+    nameL.Size = UDim2.new(1, -35, 1, 0)
+    nameL.Text = label
+    nameL.Font = Enum.Font.GothamBold
+    nameL.TextSize = 11
+    nameL.TextColor3 = THEME.SUB
+    nameL.TextXAlignment = Enum.TextXAlignment.Left
 
-    local function activate()
-        -- إلغاء تفعيل الزر القديم
-        if activeSection then
-            local prev = sidebar:FindFirstChild(activeSection.."TabBtn")
-            if prev then
-                TweenService:Create(prev,TweenInfo.new(.15),{BackgroundColor3=C.SIDEBAR}):Play()
-                local pb = prev:FindFirstChild("Frame")
-                if pb then pb.Visible = false end
-                for _,c in ipairs(prev:GetChildren()) do
-                    if c:IsA("TextLabel") then c.TextColor3 = C.SUB end
-                end
-            end
+    tabBtns[sectionName] = {btn=btn, bar=bar, emojiL=emojiL, nameL=nameL}
+
+    local function doActivate()
+        if activeSection == sectionName then return end
+        playClick()
+        -- hide current
+        if activeSection and sections[activeSection] then
             sections[activeSection].Visible = false
         end
-        -- تفعيل الجديد
-        TweenService:Create(btn,TweenInfo.new(.15),{BackgroundColor3=C.HBTN}):Play()
-        _bar.Visible = true
-        _ico.TextColor3 = C.GOLD ; _lbl.TextColor3 = C.GOLD
-        sections[sectionName].Visible = true
+        -- deactivate all tabs visually
+        for _, tb in pairs(tabBtns) do
+            TweenService:Create(tb.btn, TweenInfo.new(0.13), {BackgroundColor3 = THEME.ROW}):Play()
+            tb.bar.Visible = false
+            tb.nameL.TextColor3 = THEME.SUB
+            tb.emojiL.TextColor3 = THEME.SUB
+        end
+        -- activate this tab
+        TweenService:Create(btn, TweenInfo.new(0.13), {BackgroundColor3 = THEME.ROW_HOV}):Play()
+        bar.Visible = true
+        nameL.TextColor3 = THEME.GOLD
+        emojiL.TextColor3 = THEME.GOLD
         activeSection = sectionName
+        if sections[sectionName] then
+            sections[sectionName].Visible = true
+        end
     end
-    btn.MouseButton1Click:Connect(activate)
-    btn.TouchTap:Connect(activate)
-    tabActivators[sectionName] = activate
-    return btn, activate
-end
 
--- رأس قسم
-local function createSectionHeader(parent, titleText)
-    pcall(function()
-        local h = Instance.new("Frame", parent)
-        h.Size = UDim2.new(1,0,0,28)
-        h.BackgroundColor3 = C.GOLD3
-        Instance.new("UICorner", h).CornerRadius = UDim.new(0,8)
-        Instance.new("UIStroke", h).Color = Color3.fromRGB(70,50,5)
-        local _ac = Instance.new("Frame", h)
-        _ac.Size = UDim2.new(0,3,0.6,0) ; _ac.Position = UDim2.new(0,7,0.2,0)
-        _ac.BackgroundColor3 = C.GOLD
-        Instance.new("UICorner", _ac).CornerRadius = UDim.new(1,0)
-        local _hl = Instance.new("TextLabel", h)
-        _hl.BackgroundTransparency = 1 ; _hl.Text = titleText
-        _hl.Font = Enum.Font.GothamBold ; _hl.TextSize = 13
-        _hl.TextColor3 = C.GOLD ; _hl.TextXAlignment = Enum.TextXAlignment.Left
-        _hl.Position = UDim2.new(0,17,0,0) ; _hl.Size = UDim2.new(1,-22,1,0)
+    btn.MouseButton1Click:Connect(doActivate)
+    btn.TouchTap:Connect(doActivate)
+
+    btn.MouseEnter:Connect(function()
+        if activeSection ~= sectionName then
+            TweenService:Create(btn, TweenInfo.new(0.1), {BackgroundColor3 = THEME.ROW_HOV}):Play()
+        end
+    end)
+    btn.MouseLeave:Connect(function()
+        if activeSection ~= sectionName then
+            TweenService:Create(btn, TweenInfo.new(0.1), {BackgroundColor3 = THEME.ROW}):Play()
+        end
     end)
 end
 
--- مفتاح toggle
+-- ======= SECTION HEADER =======
+local function createSectionHeader(parent, titleText)
+    pcall(function()
+        local h = Instance.new("Frame", parent)
+        h.Size = UDim2.new(1, 0, 0, 28)
+        h.BackgroundColor3 = Color3.fromRGB(14, 14, 14)
+        h.BorderSizePixel = 0
+        Instance.new("UICorner", h).CornerRadius = UDim.new(0, 6)
+        local hs = Instance.new("UIStroke", h)
+        hs.Thickness = 1
+        hs.Color = THEME.GOLD_D
+        hs.Transparency = 0.5
+
+        local bar = Instance.new("Frame", h)
+        bar.Size = UDim2.new(0, 3, 0.5, 0)
+        bar.Position = UDim2.new(0, 8, 0.25, 0)
+        bar.BackgroundColor3 = THEME.GOLD
+        bar.BorderSizePixel = 0
+        Instance.new("UICorner", bar).CornerRadius = UDim.new(0, 2)
+
+        local lbl = Instance.new("TextLabel", h)
+        lbl.BackgroundTransparency = 1
+        lbl.Text = titleText
+        lbl.Font = Enum.Font.GothamBold
+        lbl.TextSize = 12
+        lbl.TextColor3 = THEME.GOLD
+        lbl.TextXAlignment = Enum.TextXAlignment.Left
+        lbl.Position = UDim2.new(0, 17, 0, 0)
+        lbl.Size = UDim2.new(1, -21, 1, 0)
+    end)
+end
+
+-- ======= SWITCH =======
 local function createSwitch(parent, labelText, defaultState, callback)
     local sd = {state = defaultState or false}
     pcall(function()
         local row = Instance.new("Frame", parent)
-        row.Size = UDim2.new(1,0,0,44)
-        row.BackgroundColor3 = C.ROW
-        Instance.new("UICorner", row).CornerRadius = UDim.new(0,10)
+        row.BackgroundColor3 = THEME.ROW
+        row.Size = UDim2.new(1, 0, 0, 42)
+        row.BorderSizePixel = 0
+        Instance.new("UICorner", row).CornerRadius = UDim.new(0, 8)
         local rs = Instance.new("UIStroke", row)
-        rs.Color = C.STROKE ; rs.Thickness = 1 ; rs.Transparency = 0.2
+        rs.Thickness = 0.8
+        rs.Color = THEME.STROKE
+        rs.Transparency = 0.3
         sd.row = row
 
         local lbl = Instance.new("TextLabel", row)
-        lbl.BackgroundTransparency = 1 ; lbl.Text = labelText
-        lbl.Font = Enum.Font.GothamMedium ; lbl.TextSize = 13
-        lbl.TextColor3 = C.WHITE ; lbl.TextXAlignment = Enum.TextXAlignment.Left
-        lbl.Position = UDim2.new(0,12,0,0) ; lbl.Size = UDim2.new(1,-78,1,0)
+        lbl.BackgroundTransparency = 1
+        lbl.Text = labelText
+        lbl.Font = Enum.Font.GothamBold
+        lbl.TextSize = 12
+        lbl.TextColor3 = defaultState and THEME.TEXT or THEME.SUB
+        lbl.TextXAlignment = Enum.TextXAlignment.Left
+        lbl.Position = UDim2.new(0, 12, 0, 0)
+        lbl.Size = UDim2.new(1, -72, 1, 0)
+        sd.lbl = lbl
 
         local swBG = Instance.new("Frame", row)
-        swBG.Size = UDim2.new(0,48,0,24)
-        swBG.Position = UDim2.new(1,-58,0.5,-12)
-        swBG.BackgroundColor3 = defaultState and C.SWON or C.SWOFF
-        Instance.new("UICorner", swBG).CornerRadius = UDim.new(0,12)
-        sd.swBG = swBG
+        swBG.Size = UDim2.new(0, 42, 0, 22)
+        swBG.Position = UDim2.new(1, -52, 0.5, -11)
+        swBG.BackgroundColor3 = defaultState and THEME.GOLD or Color3.fromRGB(48, 48, 48)
+        swBG.BorderSizePixel = 0
+        Instance.new("UICorner", swBG).CornerRadius = UDim.new(1, 0)
+        sd.bg = swBG
 
         local knob = Instance.new("Frame", swBG)
-        knob.Size = UDim2.new(0,18,0,18)
-        knob.Position = defaultState and UDim2.new(1,-21,0,3) or UDim2.new(0,3,0,3)
-        knob.BackgroundColor3 = C.WHITE
-        Instance.new("UICorner", knob).CornerRadius = UDim.new(0,9)
+        knob.Size = UDim2.new(0, 16, 0, 16)
+        knob.Position = defaultState and UDim2.new(1,-19,0.5,-8) or UDim2.new(0,3,0.5,-8)
+        knob.BackgroundColor3 = THEME.WHITE
+        knob.BorderSizePixel = 0
+        Instance.new("UICorner", knob).CornerRadius = UDim.new(1, 0)
         sd.knob = knob
 
-        local hit = Instance.new("TextButton", row)
-        hit.Size = UDim2.new(1,0,1,0) ; hit.BackgroundTransparency = 1 ; hit.Text = ""
-
-        sd.setState = function(ns)
-            sd.state = ns
-            TweenService:Create(swBG,TweenInfo.new(.15),{BackgroundColor3 = ns and C.SWON or C.SWOFF}):Play()
-            TweenService:Create(knob,TweenInfo.new(.15),{Position = ns and UDim2.new(1,-21,0,3) or UDim2.new(0,3,0,3)}):Play()
-            if ns then
-                TweenService:Create(rs,TweenInfo.new(.15),{Color=C.GOLD2,Transparency=0}):Play()
-            else
-                TweenService:Create(rs,TweenInfo.new(.15),{Color=C.STROKE,Transparency=0.2}):Play()
-            end
-            if callback then task.spawn(callback, ns) end
+        local function toggle(newState)
+            if newState == nil then newState = not sd.state end
+            sd.state = newState
+            playToggle()
+            TweenService:Create(swBG, TweenInfo.new(0.15), {
+                BackgroundColor3 = newState and THEME.GOLD or Color3.fromRGB(48,48,48)
+            }):Play()
+            TweenService:Create(knob, TweenInfo.new(0.15), {
+                Position = newState and UDim2.new(1,-19,0.5,-8) or UDim2.new(0,3,0.5,-8)
+            }):Play()
+            lbl.TextColor3 = newState and THEME.TEXT or THEME.SUB
+            if callback then pcall(callback, newState) end
         end
 
-        local function doToggle() sd.setState(not sd.state) end
-        hit.MouseButton1Click:Connect(doToggle)
-        hit.TouchTap:Connect(doToggle)
+        local hit = Instance.new("TextButton", row)
+        hit.Size = UDim2.new(1,0,1,0)
+        hit.BackgroundTransparency = 1
+        hit.Text = ""
+        hit.ZIndex = 5
+        hit.MouseButton1Click:Connect(function() toggle() end)
+        hit.TouchTap:Connect(function() toggle() end)
+
+        sd.get = function() return sd.state end
+        sd.set = function(s) toggle(s) end
+
+        row.MouseEnter:Connect(function()
+            TweenService:Create(row, TweenInfo.new(0.1), {BackgroundColor3 = THEME.ROW_HOV}):Play()
+        end)
+        row.MouseLeave:Connect(function()
+            TweenService:Create(row, TweenInfo.new(0.1), {BackgroundColor3 = THEME.ROW}):Play()
+        end)
     end)
-    return {row=sd.row, set=sd.setState, get=function() return sd.state end}
+    return sd.state, sd
 end
 
--- زر عادي
-local function createButton(parent, labelText, callback)
+-- ======= BUTTON =======
+local function createButton(parent, text, callback)
     local btn = Instance.new("TextButton", parent)
-    btn.Size = UDim2.new(1,0,0,42) ; btn.BackgroundColor3 = C.ROW
-    btn.Text = labelText ; btn.Font = Enum.Font.GothamMedium
-    btn.TextSize = 13 ; btn.TextColor3 = C.WHITE ; btn.AutoButtonColor = false
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0,10)
+    btn.Size = UDim2.new(1, 0, 0, 36)
+    btn.BackgroundColor3 = THEME.ROW
+    btn.Text = text
+    btn.TextColor3 = THEME.TEXT
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 12
+    btn.AutoButtonColor = false
+    btn.BorderSizePixel = 0
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
     local bs = Instance.new("UIStroke", btn)
-    bs.Color = C.STROKE ; bs.Thickness = 1 ; bs.Transparency = 0.2
+    bs.Color = THEME.STROKE
+    bs.Thickness = 0.8
+    bs.Transparency = 0.3
+
+    btn.MouseButton1Click:Connect(function()
+        playClick()
+        if callback then pcall(callback) end
+        TweenService:Create(btn, TweenInfo.new(0.07), {BackgroundColor3 = THEME.GOLD_D}):Play()
+        task.wait(0.13)
+        TweenService:Create(btn, TweenInfo.new(0.13), {BackgroundColor3 = THEME.ROW}):Play()
+    end)
+    btn.TouchTap:Connect(function()
+        if callback then pcall(callback) end
+    end)
     btn.MouseEnter:Connect(function()
-        TweenService:Create(btn,TweenInfo.new(.1),{BackgroundColor3=C.HBTN}):Play()
-        bs.Color = C.GOLD2
+        TweenService:Create(btn, TweenInfo.new(0.1), {BackgroundColor3 = THEME.ROW_HOV}):Play()
     end)
     btn.MouseLeave:Connect(function()
-        TweenService:Create(btn,TweenInfo.new(.1),{BackgroundColor3=C.ROW}):Play()
-        bs.Color = C.STROKE
+        TweenService:Create(btn, TweenInfo.new(0.1), {BackgroundColor3 = THEME.ROW}):Play()
     end)
-    btn.MouseButton1Click:Connect(function() if callback then pcall(callback) end end)
-    btn.TouchTap:Connect(function() if callback then pcall(callback) end end)
     return btn
 end
 
--- حقل رقمي
-local function createNumberInput(parent, labelText, defaultValue, callback)
-    local row = Instance.new("Frame", parent)
-    row.Size = UDim2.new(1,0,0,44) ; row.BackgroundColor3 = C.ROW
-    Instance.new("UICorner", row).CornerRadius = UDim.new(0,10)
-    Instance.new("UIStroke", row).Color = C.STROKE
-    local lbl = Instance.new("TextLabel", row)
-    lbl.BackgroundTransparency = 1 ; lbl.Text = labelText
-    lbl.Font = Enum.Font.GothamMedium ; lbl.TextSize = 13 ; lbl.TextColor3 = C.WHITE
-    lbl.TextXAlignment = Enum.TextXAlignment.Left
-    lbl.Position = UDim2.new(0,12,0,0) ; lbl.Size = UDim2.new(1,-90,1,0)
-    local tb = Instance.new("TextBox", row)
-    tb.Size = UDim2.new(0,68,0,28) ; tb.Position = UDim2.new(1,-76,0.5,-14)
-    tb.BackgroundColor3 = C.SIDEBAR ; tb.Text = tostring(defaultValue)
-    tb.Font = Enum.Font.GothamBold ; tb.TextSize = 13 ; tb.TextColor3 = C.GOLD
-    tb.TextXAlignment = Enum.TextXAlignment.Center
-    Instance.new("UICorner", tb).CornerRadius = UDim.new(0,7)
-    local tbs = Instance.new("UIStroke", tb) ; tbs.Color = C.GOLD2 ; tbs.Thickness = 1
-    tb.FocusLost:Connect(function()
-        local n = tonumber(tb.Text)
-        if n then if callback then pcall(callback,n) end
-        else tb.Text = tostring(defaultValue) end
-    end)
-    return {row=row, get=function() return tonumber(tb.Text) or defaultValue end}
+-- ======= CREATE ALL SECTIONS =======
+_G.homeSection     = createSection("Home")
+_G.movementSection = createSection("Movement")
+_G.visualSection   = createSection("Visual")
+_G.serverSection   = createSection("Server")
+_G.patchedSection  = createSection("Patched")
+_G.desyncSection   = createSection("Desync")
+_G.axlSection      = createSection("AXL")
+
+-- ======= CREATE ALL TABS =======
+createTabButton("الرئيسية", "Home",     "🏠")
+createTabButton("الحركة",   "Movement", "🚀")
+createTabButton("المرئيات", "Visual",   "👁")
+createTabButton("ملغي",     "Patched",  "🔧")
+createTabButton("السيرفر",  "Server",   "🌐")
+createTabButton("ديسينك",   "Desync",   "⚡")
+createTabButton("AXL ⭐",   "AXL",      "⭐")
+
+-- ======= ACTIVATE HOME TAB BY DEFAULT =======
+do
+    local tb = tabBtns["Home"]
+    if tb then
+        TweenService:Create(tb.btn, TweenInfo.new(0.13), {BackgroundColor3 = THEME.ROW_HOV}):Play()
+        tb.bar.Visible = true
+        tb.nameL.TextColor3 = THEME.GOLD
+        tb.emojiL.TextColor3 = THEME.GOLD
+    end
+    activeSection = "Home"
+    if sections["Home"] then sections["Home"].Visible = true end
 end
 
--- ══════════════════════════════════════════
--- Circular (Float) Toggle System
--- ══════════════════════════════════════════
-_G.circularToggleGui = circularGui
+-- ======= OPEN ANIMATION =======
+task.spawn(function()
+    mainFrame.Size = UDim2.new(0, 0, 0, 0)
+    mainFrame.BackgroundTransparency = 1
+    TweenService:Create(mainFrame, TweenInfo.new(0.28, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+        Size = UDim2.new(0, 610, 0, 410),
+        BackgroundTransparency = 0
+    }):Play()
+    task.wait(0.1)
+    playOpen()
+end)
 
-_G.createCircularToggleUI = function(toggleName, getState, setState)
-    local existing = circularGui:FindFirstChild(toggleName.."ToggleUI")
-    if existing then existing:Destroy() end
 
-    local td = {frame=Instance.new("TextButton"), dragging=false}
-    td.frame.Name = toggleName.."ToggleUI"
-    td.frame.Size = UDim2.new(0,210,0,62)
-    local sPos = _G.OpenCircularToggles[toggleName]
-    if not sPos then
-        local cnt = 0
-        for _ in pairs(_G.OpenCircularToggles) do cnt=cnt+1 end
-        sPos = UDim2.new(1,-220,0,10+cnt*72)
-    end
-    td.frame.Position = sPos
-    td.frame.BackgroundColor3 = C.PANEL
-    td.frame.Text = "" ; td.frame.AutoButtonColor = false
-    td.frame.Parent = circularGui
-    Instance.new("UICorner", td.frame).CornerRadius = UDim.new(0,12)
-    local fStroke = Instance.new("UIStroke", td.frame)
-    fStroke.Thickness = 1.5 ; fStroke.Color = C.GOLD2 ; fStroke.Transparency = 0.3
 
-    local dragHit = Instance.new("TextButton", td.frame)
-    dragHit.Size = UDim2.new(1,-64,1,0) ; dragHit.BackgroundTransparency = 1 ; dragHit.Text = ""
+-- Home Section
+createSectionHeader(_G.homeSection, "مرحباً بك")
+local welcomeLabel = Instance.new("TextLabel")
+welcomeLabel.Size = UDim2.new(1, -20, 0, 100)
+welcomeLabel.BackgroundTransparency = 1
+welcomeLabel.Text = "⭐ مرحباً في KEN HUB × AXL PREMIUM\nأفضل سكريبت مجاني لـ Steal a Brainrot!\nيتم التحديث كل أسبوع 🎉\nانضم لمجتمعنا: " .. CONFIG.DiscordLink
+welcomeLabel.TextColor3 = CONFIG.Colors.SubText
+welcomeLabel.TextSize = 14
+welcomeLabel.Font = Enum.Font.Gotham
+welcomeLabel.TextXAlignment = Enum.TextXAlignment.Left
+welcomeLabel.TextYAlignment = Enum.TextYAlignment.Top
+welcomeLabel.TextWrapped = true
+welcomeLabel.Parent = _G.homeSection
 
-    local closeB = Instance.new("TextButton", td.frame)
-    closeB.Size = UDim2.new(0,26,0,26) ; closeB.Position = UDim2.new(1,-30,0,6)
-    closeB.BackgroundColor3 = Color3.fromRGB(130,22,22) ; closeB.Text = "×"
-    closeB.TextColor3 = C.WHITE ; closeB.Font = Enum.Font.GothamBold ; closeB.TextSize = 14
-    closeB.AutoButtonColor = false ; closeB.ZIndex = 10
-    Instance.new("UICorner", closeB).CornerRadius = UDim.new(1,0)
+-- (createButton defined above with THEME colors)
 
-    local titleL = Instance.new("TextLabel", td.frame)
-    titleL.Size = UDim2.new(1,-140,0,24) ; titleL.Position = UDim2.new(0,10,0,8)
-    titleL.BackgroundTransparency = 1 ; titleL.Text = toggleName
-    titleL.TextColor3 = C.GOLD ; titleL.Font = Enum.Font.GothamBold ; titleL.TextSize = 13
-    titleL.TextXAlignment = Enum.TextXAlignment.Left
 
-    local swBG = Instance.new("Frame", td.frame)
-    swBG.Size = UDim2.new(0,50,0,26) ; swBG.Position = UDim2.new(0,100,0.5,-13)
-    swBG.BackgroundColor3 = getState() and C.SWON or C.SWOFF
-    Instance.new("UICorner", swBG).CornerRadius = UDim.new(1,0)
-    local knob = Instance.new("Frame", swBG)
-    knob.Size = UDim2.new(0,20,0,20) ; knob.Position = getState() and UDim2.new(1,-23,0,3) or UDim2.new(0,3,0,3)
-    knob.BackgroundColor3 = C.WHITE
-    Instance.new("UICorner", knob).CornerRadius = UDim.new(1,0)
+-- Movement Section
+createSectionHeader(_G.movementSection, "حركة اللاعب")
 
-    local function updSW()
-        local on = getState()
-        TweenService:Create(swBG,TweenInfo.new(.15),{BackgroundColor3=on and C.SWON or C.SWOFF}):Play()
-        TweenService:Create(knob,TweenInfo.new(.15),{Position=on and UDim2.new(1,-23,0,3) or UDim2.new(0,3,0,3)}):Play()
-    end
-    local swHit = Instance.new("TextButton", swBG)
-    swHit.Size=UDim2.new(1,0,1,0) ; swHit.BackgroundTransparency=1 ; swHit.Text=""
-    swHit.MouseButton1Click:Connect(function() setState(not getState()); updSW() end)
-    swHit.TouchTap:Connect(function() setState(not getState()); updSW() end)
 
-    local function doClose()
-        _G.OpenCircularToggles[toggleName] = nil
-        _G.saveSettings() ; td.frame:Destroy()
-    end
-    closeB.MouseButton1Click:Connect(doClose)
-    closeB.TouchTap:Connect(doClose)
+-- New Float System
+local FLOAT_ENABLED = false
+local connections = {}
+local bodyVelocity = nil
+local floatPart = nil
+local lastJumpTime = 0
+local JUMP_COOLDOWN = 0.5 -- Minimum time between jump inputs to avoid anti-cheat
 
-    local dStart, dPos0
-    dragHit.InputBegan:Connect(function(i)
-        if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then
-            td.dragging=true ; dStart=i.Position ; dPos0=td.frame.Position ; fStroke.Transparency=0
-        end
-    end)
-    dragHit.InputChanged:Connect(function(i)
-        if td.dragging and (i.UserInputType==Enum.UserInputType.MouseMovement or i.UserInputType==Enum.UserInputType.Touch) then
-            local d=i.Position-dStart
-            td.frame.Position=UDim2.new(dPos0.X.Scale,dPos0.X.Offset+d.X,dPos0.Y.Scale,dPos0.Y.Offset+d.Y)
-        end
-    end)
-    dragHit.InputEnded:Connect(function(i)
-        if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then
-            td.dragging=false ; fStroke.Transparency=0.3
-            _G.OpenCircularToggles[toggleName]=td.frame.Position ; _G.saveSettings()
-        end
-    end)
-    if not _G.OpenCircularToggles[toggleName] then
-        _G.OpenCircularToggles[toggleName]=td.frame.Position ; _G.saveSettings()
-    end
-    return td.frame
-end
+local function enableFloat(character)
+    local success, err = pcall(function()
+        if FLOAT_ENABLED then return end
 
--- ══════════════════════════════════════════
--- إنشاء الأقسام والتابات
--- ══════════════════════════════════════════
-_G.homeSection      = createSection("الرئيسية")
-_G.movementSection  = createSection("الحركة")
-_G.visualSection    = createSection("المرئيات")
-_G.serverSection    = createSection("السيرفر")
-_G.patchedSection   = createSection("المُصلَح")
-_G.desyncSection    = createSection("ديسينك")
-_G.axlSection       = createSection("AXL")
+        local humanoid = character:WaitForChild("Humanoid", 5)
+        local rootPart = character:WaitForChild("HumanoidRootPart", 5)
+        if not humanoid or not rootPart then return end
 
-local _, activateHome = createTabButton("🏠 الرئيسية",  "الرئيسية",  "🏠")
-createTabButton("🏃 الحركة",    "الحركة",    "🏃")
-createTabButton("👁 المرئيات",  "المرئيات",  "👁")
-createTabButton("🔧 المُصلَح",  "المُصلَح",  "🔧")
-createTabButton("🌐 السيرفر",   "السيرفر",   "🌐")
-createTabButton("⚡ ديسينك",    "ديسينك",    "⚡")
-createTabButton("⭐ AXL",       "AXL",       "⭐")
+        FLOAT_ENABLED = true
 
-local function getBackpackItems(plr)
-    local success, items = pcall(function()
-        local result = {}
-        if plr.Backpack then
-            for _, item in ipairs(plr.Backpack:GetChildren()) do
-                if item:IsA("Tool") or item:IsA("HopperBin") then
-                    table.insert(result, item)
-                end
-            end
-        end
-        if plr.Character then
-            for _, item in ipairs(plr.Character:GetChildren()) do
-                if item:IsA("Tool") or item:IsA("HopperBin") then
-                    table.insert(result, item)
-                end
-            end
-        end
-        local inventoryFolder = plr:FindFirstChild("Inventory") or (plr.Character and plr.Character:FindFirstChild("Inventory"))
-        if inventoryFolder then
-            for _, item in ipairs(inventoryFolder:GetChildren()) do
-                if item:IsA("Instance") then
-                    table.insert(result, item)
-                end
-            end
-        end
-        return result
-    end)
-    if not success then
-        warn("Failed to get backpack items for player: " .. plr.Name)
-        return {}
-    end
-    return items
-end
-
-local function createBillboardGui(plr, char)
-    local success, billboard, distanceLabel, iconFrame = pcall(function()
-        local gui = Instance.new("BillboardGui")
-        gui.Name = "ESP_Billboard"
-        gui.Adornee = char:FindFirstChild("HumanoidRootPart")
-        gui.Size = UDim2.new(0, 200, 0, CONFIG.ESP.PlayerESP.ShowDistance and CONFIG.ESP.PlayerESP.ShowItems and 80 or (CONFIG.ESP.PlayerESP.ShowDistance and 50 or 30))
-        gui.SizeOffset = Vector2.new(0, 0)
-        gui.StudsOffset = Vector3.new(0, 3, 0)
-        gui.AlwaysOnTop = true
-        gui.MaxDistance = 10000
-        gui.Parent = char
-
-        -- Main container with rounded corners and background
-        local mainFrame = Instance.new("Frame")
-        mainFrame.Size = UDim2.new(1, 0, 1, 0)
-        mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-        mainFrame.BackgroundTransparency = 0.1
-        mainFrame.BorderSizePixel = 0
-        mainFrame.Parent = gui
+        -- Create invisible client-side part
+        floatPart = Instance.new("Part")
+        floatPart.Size = Vector3.new(4, 1, 4) -- Wider than character
+        floatPart.Transparency = 1 -- Invisible
+        floatPart.Anchored = false
+        floatPart.CanCollide = false
+        floatPart.Massless = true -- Reduces physics impact
+        floatPart.Parent = workspace
         
-        -- Rounded corners
-        local corner = Instance.new("UICorner")
-        corner.CornerRadius = UDim.new(0, 8)
-        corner.Parent = mainFrame
+        -- Weld the part to the character's root
+        local weld = Instance.new("Weld")
+        weld.Part0 = rootPart
+        weld.Part1 = floatPart
+        weld.C0 = CFrame.new(0, -3.5, 0) -- Position below character
+        weld.Parent = floatPart
+
+        -- Apply subtle downward force for slow descent
+        bodyVelocity = Instance.new("BodyVelocity")
+        bodyVelocity.MaxForce = Vector3.new(0, 5000, 0) -- Moderate force
+        bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+        bodyVelocity.P = 1000
+        bodyVelocity.Parent = floatPart
+
+        -- Main float logic for slow descent with improved detection
+        connections.stepped = RunService.Stepped:Connect(function()
+            if not FLOAT_ENABLED or not humanoid or humanoid.Health <= 0 then
+                return
+            end
+
+            local isInAir = humanoid:GetState() == Enum.HumanoidStateType.Freefall
+            local isJumping = humanoid:GetState() == Enum.HumanoidStateType.Jumping
+            local isFalling = humanoid:GetState() == Enum.HumanoidStateType.FallingDown
+            
+            -- Check if player is off ground using raycast
+            local raycast = workspace:Raycast(rootPart.Position, Vector3.new(0, -10, 0))
+            local isOnGround = raycast ~= nil
+            
+            -- Apply float when: already in air, jumping, falling, or not on ground
+            if isInAir or isJumping or isFalling or not isOnGround then
+                local descentSpeed = CONFIG.Movement.Float.DescentSpeed or 2
+                bodyVelocity.Velocity = Vector3.new(0, -descentSpeed, 0) -- Slow descent speed
+            else
+                bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+            end
+        end)
+
+        -- Cleanup connections
+        connections.died = humanoid.Died:Connect(function()
+            disableFloat()
+        end)
         
-        -- Subtle border
-        local border = Instance.new("UIStroke")
-        border.Color = Color3.fromRGB(100, 100, 100)
-        border.Thickness = 1
-        border.Transparency = 0.3
-        border.Parent = mainFrame
-
-        local frame = Instance.new("Frame")
-        frame.Size = UDim2.new(1, -8, 1, -8)
-        frame.Position = UDim2.new(0, 4, 0, 4)
-        frame.BackgroundTransparency = 1
-        frame.Parent = mainFrame
-
-        -- Username with better styling
-        local usernameLabel = Instance.new("TextLabel")
-        usernameLabel.Size = UDim2.new(1, 0, CONFIG.ESP.PlayerESP.ShowDistance and 0.4 or 1, 0)
-        usernameLabel.Position = UDim2.new(0, 0, 0, 0)
-        usernameLabel.Text = plr.Name
-        usernameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-        usernameLabel.BackgroundTransparency = 1
-        usernameLabel.TextScaled = true
-        usernameLabel.TextSize = CONFIG.ESP.PlayerESP.TextSize
-        usernameLabel.Font = Enum.Font.GothamBold
-        usernameLabel.TextStrokeTransparency = 0.8
-        usernameLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-        usernameLabel.Parent = frame
-
-        local distLabel
-        if CONFIG.ESP.PlayerESP.ShowDistance then
-            distLabel = Instance.new("TextLabel")
-            distLabel.Size = UDim2.new(1, 0, 0.3, 0)
-            distLabel.Position = UDim2.new(0, 0, 0.4, 0)
-            distLabel.Text = "Distance: Calculating..."
-            distLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-            distLabel.BackgroundTransparency = 1
-            distLabel.TextScaled = true
-            distLabel.TextSize = CONFIG.ESP.PlayerESP.DistanceTextSize
-            distLabel.Font = Enum.Font.Gotham
-            distLabel.TextStrokeTransparency = 0.8
-            distLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-            distLabel.Parent = frame
-        end
-
-        local iconFrame = Instance.new("Frame")
-        iconFrame.Size = UDim2.new(1, 0, 0.3, 0)
-        iconFrame.Position = UDim2.new(0, 0, CONFIG.ESP.PlayerESP.ShowDistance and 0.7 or 0.4, 0)
-        iconFrame.BackgroundTransparency = 1
-        iconFrame.Visible = CONFIG.ESP.PlayerESP.ShowItems
-        iconFrame.Parent = frame
-
-        local uiLayout = Instance.new("UIGridLayout")
-        uiLayout.CellSize = UDim2.new(0, 24, 0, 24)
-        uiLayout.CellPadding = UDim2.new(0, 3, 0, 3)
-        uiLayout.FillDirection = Enum.FillDirection.Horizontal
-        uiLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-        uiLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-        uiLayout.SortOrder = Enum.SortOrder.LayoutOrder
-        uiLayout.Parent = iconFrame
-
-        return gui, distLabel, iconFrame
+        connections.characterRemoving = character.AncestryChanged:Connect(function(_, parent)
+            if parent == nil then
+                disableFloat()
+            end
+        end)
     end)
+
     if not success then
-        warn("Failed to create billboard GUI for player: " .. plr.Name)
-        return nil, nil, nil
+        warn("Float enable error: " .. tostring(err))
+        FLOAT_ENABLED = false
     end
-    return billboard, distanceLabel, iconFrame
 end
 
-local function updateBillboard(plr, data)
-    if not plr.Character or not plr.Character:FindFirstChild("HumanoidRootPart") or not data.billboard or not data.billboard.Adornee then
+local function disableFloat()
+        FLOAT_ENABLED = false
+        for _, conn in pairs(connections) do
+            pcall(function() conn:Disconnect() end)
+        end
+        connections = {}
+    
+    if floatPart then
+        floatPart:Destroy()
+        floatPart = nil
+    end
+end
+
+-- Attach to current character and future spawns
+player.CharacterAdded:Connect(function(newCharacter)
+    disableFloat() -- Clean up old character
+    task.spawn(function()
+        task.wait(0.5) -- Wait for character to fully load
+        if CONFIG.Movement.Float.Enabled then
+            enableFloat(newCharacter) -- Apply to new character
+        end
+        if CONFIG.AntiKick.Enabled then
+            enableAntiKick() -- Re-enable anti-kick for new character
+        end
+    end)
+end)
+
+-- Apply to existing character
+if player.Character and CONFIG.Movement.Float.Enabled then
+    task.spawn(function()
+        task.wait(0.5) -- Wait for character to fully load
+    enableFloat(player.Character)
+    end)
+end
+
+if player.Character and CONFIG.Movement.Rise.Enabled then
+    print("🚀 Initializing Platform on existing character - CONFIG.Movement.Rise.Enabled:", CONFIG.Movement.Rise.Enabled)
+    task.spawn(function()
+        task.wait(0.5) -- Wait for character to fully load
+        enablePlatform(player.Character)
+    end)
+else
+    print("⚠️ Platform not initialized - player.Character:", player.Character, "CONFIG.Movement.Rise.Enabled:", CONFIG.Movement.Rise.Enabled)
+end
+
+
+-- Note: BindToClose can only be called by server, so we'll handle cleanup differently
+
+local floatSwitch = createSwitch(_G.movementSection, "طيران بطيء (Float)", CONFIG.Movement.Float.Enabled, function(on)
+    CONFIG.Movement.Float.Enabled = on
+    _G.saveSettings()
+    if on then
+        if player.Character then
+            enableFloat(player.Character)
+        end
+        -- Auto-create side toggle when enabled
+        _G.createCircularToggleUI("Float", function() return CONFIG.Movement.Float.Enabled end, function(state)
+            CONFIG.Movement.Float.Enabled = state
+            _G.saveSettings()
+            if state then
+                if player.Character then enableFloat(player.Character) end
+            else
+                disableFloat()
+            end
+        end)
+    else
+        disableFloat()
+        -- Remove side toggle when disabled
+        local existingToggle = _G.circularToggleGui:FindFirstChild("FloatToggleUI")
+        if existingToggle then
+            _G.OpenCircularToggles["Float"] = nil
+            existingToggle:Destroy()
+            _G.saveSettings()
+        end
+    end
+    -- ActiveFeatures removed
+    _G.saveSettings()
+end)
+
+
+local _, unhittableSwitchInstance = setupUnhittableControl(_G.movementSection)
+local _, resizeSwitchInstance = setupResizeControl(_G.movementSection)
+
+--=========================================================
+-- Helicopter System
+--=========================================================
+local HELICOPTER_ENABLED = false
+local helicopterConnections = {}
+local helicopterBodyAngularVelocity = nil
+
+local function enableHelicopter(character)
+    local success, err = pcall(function()
+        if HELICOPTER_ENABLED then return end
+
+        -- Wait for HumanoidRootPart
+        local rootPart = character:WaitForChild("HumanoidRootPart", 5)
+        if not rootPart then
+            error("HumanoidRootPart not found in character")
+        end
+        if rootPart.Anchored then
+            error("HumanoidRootPart is anchored, cannot apply helicopter")
+        end
+
+        HELICOPTER_ENABLED = true
+
+        -- Create BodyAngularVelocity for rotation
+        helicopterBodyAngularVelocity = Instance.new("BodyAngularVelocity")
+        helicopterBodyAngularVelocity.MaxTorque = Vector3.new(0, math.huge, 0) -- Only rotate on Y axis
+        helicopterBodyAngularVelocity.AngularVelocity = Vector3.new(0, CONFIG.Movement.Helicopter.RotationSpeed, 0)
+        helicopterBodyAngularVelocity.Parent = rootPart
+
+        -- Main helicopter loop - just rotation and fling detection
+        helicopterConnections.helicopter = RunService.Heartbeat:Connect(function()
+            if not HELICOPTER_ENABLED or not rootPart or rootPart.Parent ~= character then
         return
     end
-    local success, _ = pcall(function()
-        local localPlayer = Players.LocalPlayer
-        if not localPlayer.Character or not localPlayer.Character:FindFirstChild("HumanoidRootPart") then
+    
+            -- Find and fling nearby players
+            for _, otherPlayer in pairs(Players:GetPlayers()) do
+                if otherPlayer ~= player and otherPlayer.Character and otherPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                    local otherRootPart = otherPlayer.Character.HumanoidRootPart
+                    local distance = (otherRootPart.Position - rootPart.Position).Magnitude
+                    
+                    -- If close enough, fling them
+                    if distance < 8 then
+                        local direction = (otherRootPart.Position - rootPart.Position).Unit
+                        local flingForce = direction * 100 + Vector3.new(0, 50, 0) -- Fixed power
+                        
+                        -- Apply fling force
+                        otherRootPart.AssemblyLinearVelocity = flingForce
+                    end
+                end
+            end
+        end)
+
+        -- Cleanup on death
+        local humanoid = character:WaitForChild("Humanoid", 5)
+        if humanoid then
+            helicopterConnections.died = humanoid.Died:Connect(function()
+                disableHelicopter()
+            end)
+        end
+    end)
+    
+    if not success then
+        warn("Failed to enable helicopter: " .. tostring(err))
+        HELICOPTER_ENABLED = false
+    end
+end
+
+local function disableHelicopter()
+    local success, err = pcall(function()
+        if not HELICOPTER_ENABLED then return end
+        HELICOPTER_ENABLED = false
+        for _, conn in pairs(helicopterConnections) do
+            pcall(function() conn:Disconnect() end)
+        end
+        helicopterConnections = {}
+        if helicopterBodyAngularVelocity then
+            helicopterBodyAngularVelocity:Destroy()
+            helicopterBodyAngularVelocity = nil
+        end
+    end)
+    if not success then
+        warn("Failed to disable helicopter: " .. tostring(err))
+    end
+end
+
+-- Attach to current character and future spawns
+player.CharacterAdded:Connect(function(newCharacter)
+    pcall(function() disableHelicopter() end) -- Clean up old character
+    pcall(function() disableGrappleFlight() end) -- Clean up old character
+    pcall(function() disableInfiniteJump() end) -- Clean up old character
+    pcall(function() disablePlatform() end) -- Clean up old character
+    task.spawn(function()
+        task.wait(0.1) -- Small delay to avoid race conditions
+        if CONFIG.Movement.Helicopter.Enabled then
+            enableHelicopter(newCharacter) -- Apply to new character
+        end
+        if CONFIG.Movement.GrappleFlight.Enabled then
+            enableGrappleFlight() -- Apply to new character
+        end
+        if CONFIG.Movement.InfiniteJump.Enabled then
+            enableInfiniteJump() -- Apply to new character
+        end
+        if CONFIG.Movement.Rise.Enabled then
+            print("🔄 Enabling Platform on new character - CONFIG.Movement.Rise.Enabled:", CONFIG.Movement.Rise.Enabled)
+            enablePlatform(newCharacter) -- Apply to new character
+        end
+    end)
+end)
+
+-- Apply to existing character if helicopter is enabled
+if player.Character and CONFIG.Movement.Helicopter.Enabled then
+    task.spawn(function()
+        task.wait(0.1) -- Small delay to avoid race conditions
+        enableHelicopter(player.Character)
+    end)
+end
+
+-- Apply to existing character if grapple flight is enabled
+-- Forward declarations so we can call these before their definitions below
+local enableGrappleFlight
+local enableInfiniteJump
+
+if player.Character and CONFIG.Movement.GrappleFlight.Enabled then
+    task.spawn(function()
+        task.wait(0.1) -- Small delay to avoid race conditions
+        enableGrappleFlight()
+    end)
+end
+
+-- Apply to existing character if infinite jump is enabled
+if player.Character and CONFIG.Movement.InfiniteJump.Enabled then
+    task.spawn(function()
+        task.wait(0.1) -- Small delay to avoid race conditions
+        enableInfiniteJump()
+    end)
+end
+
+--=========================================================
+-- Grapple Flight System
+--=========================================================
+local grappleFlightEnabled = false
+local grappleFlightConnection = nil
+local grappleTool = nil
+local flightPart = nil -- Track the welded part for cleanup
+
+local function getGrappleHook()
+    local backpack = player:FindFirstChild("Backpack")
+    if not backpack then return nil end
+
+    grappleTool = backpack:FindFirstChild("Grapple Hook") or backpack:FindFirstChild("GrappleHook")
+    if not grappleTool then
+        grappleTool = workspace:FindFirstChild("Grapple Hook") or workspace:FindFirstChild("GrappleHook")
+        if grappleTool and grappleTool:IsA("Tool") then
+            grappleTool.Parent = backpack
+        end
+    end
+    return grappleTool
+end
+
+local function equipGrappleHook()
+    if not getGrappleHook() then return false end
+    local char = player.Character
+    if not char then return false end
+
+    local equipped = char:FindFirstChild("Grapple Hook") or char:FindFirstChild("GrappleHook")
+    if equipped then
+        grappleTool = equipped
+        return true
+    end
+
+    if grappleTool then
+        grappleTool.Parent = char
+        return true
+    end
+    return false
+end
+
+enableGrappleFlight = function()
+    if grappleFlightEnabled then return end
+    grappleFlightEnabled = true
+
+    if not equipGrappleHook() then
+        warn("No Grapple Hook found!")
+        grappleFlightEnabled = false
+        return
+    end
+
+    local char = player.Character
+    if not char then return end
+    
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    local root = char:FindFirstChild("HumanoidRootPart")
+    if not hum or not root then return end
+
+    -- Create invisible client-side part for anti-detection (like float system)
+    flightPart = Instance.new("Part")
+    flightPart.Size = Vector3.new(2, 1, 2) -- Small invisible part
+    flightPart.Transparency = 1 -- Invisible
+    flightPart.Anchored = false
+    flightPart.CanCollide = false
+    flightPart.Massless = true -- Reduces physics impact
+    flightPart.Parent = workspace
+    
+    -- Weld the part to the character's root (anti-detection technique)
+    local weld = Instance.new("Weld")
+    weld.Part0 = root
+    weld.Part1 = flightPart
+    weld.C0 = CFrame.new(0, 0, 0) -- Position at character center
+    weld.Parent = flightPart
+
+    local spd = CONFIG.Movement.GrappleFlight.Speed
+    local bodyVel
+
+    grappleFlightConnection = RunService.Heartbeat:Connect(function()
+        local char = player.Character
+        if not char then return end
+
+        local hum = char:FindFirstChildOfClass("Humanoid")
+        local root = char:FindFirstChild("HumanoidRootPart")
+        if not hum or not root then return end
+
+        -- Fire grapple remote
+        local net = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Net"))
+        net:RemoteEvent("UseItem"):FireServer(0.1)
+
+        -- Apply BodyVelocity to the welded part instead of character (anti-detection)
+        if not bodyVel or not bodyVel.Parent then
+            bodyVel = Instance.new("BodyVelocity")
+            bodyVel.Name = "FlyVel"
+            bodyVel.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+            bodyVel.P = 2000
+            bodyVel.Parent = flightPart -- Apply to welded part, not character
+        end
+
+        local dir = Vector3.new(0,0,0)
+
+        -- PC Controls (Keyboard)
+        if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+            dir = dir + workspace.CurrentCamera.CFrame.LookVector*spd
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.S) then
+            dir = dir - workspace.CurrentCamera.CFrame.LookVector*spd
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.A) then
+            dir = dir - workspace.CurrentCamera.CFrame.RightVector*spd
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.D) then
+            dir = dir + workspace.CurrentCamera.CFrame.RightVector*spd
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+            dir = dir + Vector3.new(0,spd,0)
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
+            dir = dir - Vector3.new(0,spd,0)
+        end
+
+        -- Mobile Controls (Touch) - Simple and effective
+        local touchEnabled = UserInputService.TouchEnabled
+        if touchEnabled then
+            -- Use the humanoid's MoveDirection for mobile (works with virtual joystick)
+            local moveDirection = hum.MoveDirection
+            if moveDirection.Magnitude > 0 then
+                -- Convert move direction to world space
+                local camera = workspace.CurrentCamera
+                local lookVector = camera.CFrame.LookVector
+                local rightVector = camera.CFrame.RightVector
+                
+                -- Calculate movement based on move direction
+                local forward = moveDirection.Z
+                local right = moveDirection.X
+                local up = moveDirection.Y
+                
+                -- Apply movement
+                if forward > 0 then
+                    dir = dir + lookVector * spd * forward
+                elseif forward < 0 then
+                    dir = dir + lookVector * spd * forward
+                end
+                
+                if right > 0 then
+                    dir = dir + rightVector * spd * right
+                elseif right < 0 then
+                    dir = dir + rightVector * spd * right
+                end
+                
+                if up > 0 then
+                    dir = dir + Vector3.new(0, spd * up, 0)
+                elseif up < 0 then
+                    dir = dir + Vector3.new(0, spd * up, 0)
+                end
+            end
+        end
+
+        -- Prevent flinging by limiting velocity magnitude
+        local velocityMagnitude = dir.Magnitude
+        if velocityMagnitude > spd * 1.5 then
+            dir = dir.Unit * (spd * 1.5) -- Cap at 1.5x speed to prevent flinging
+        end
+
+        bodyVel.Velocity = dir
+        hum:ChangeState(Enum.HumanoidStateType.Physics)
+    end)
+end
+
+local function disableGrappleFlight()
+    if not grappleFlightEnabled then return end
+    grappleFlightEnabled = false
+
+    if grappleFlightConnection then
+        grappleFlightConnection:Disconnect()
+        grappleFlightConnection = nil
+    end
+
+    local char = player.Character
+    if char then
+        local hum = char:FindFirstChildOfClass("Humanoid")
+        local root = char:FindFirstChild("HumanoidRootPart")
+
+        if hum then
+            hum:ChangeState(Enum.HumanoidStateType.Running)
+        end
+
+        -- Unequip grapple hook
+        local equippedGrapple = char:FindFirstChild("Grapple Hook") or char:FindFirstChild("GrappleHook")
+        if equippedGrapple and equippedGrapple:IsA("Tool") then
+            equippedGrapple.Parent = player:FindFirstChild("Backpack")
+        end
+
+        -- Clean up welded flight part (anti-detection cleanup)
+        if flightPart then
+            flightPart:Destroy()
+            flightPart = nil
+        end
+    end
+end
+
+local grappleFlightSwitch = createSwitch(_G.movementSection, "طيران Grapple", CONFIG.Movement.GrappleFlight.Enabled, function(on)
+    CONFIG.Movement.GrappleFlight.Enabled = on
+    _G.saveSettings()
+    if on then
+        enableGrappleFlight()
+        -- Auto-create side toggle when enabled
+        _G.createCircularToggleUI("Grapple Flight", function() return CONFIG.Movement.GrappleFlight.Enabled end, function(state)
+            CONFIG.Movement.GrappleFlight.Enabled = state
+            _G.saveSettings()
+            if state then
+                enableGrappleFlight()
+            else
+                disableGrappleFlight()
+            end
+        end)
+    else
+        disableGrappleFlight()
+        -- Remove side toggle when disabled
+        local existingToggle = _G.circularToggleGui:FindFirstChild("Grapple FlightToggleUI")
+        if existingToggle then
+            _G.OpenCircularToggles["Grapple Flight"] = nil
+            existingToggle:Destroy()
+            _G.saveSettings()
+        end
+    end
+    -- ActiveFeatures removed
+    _G.saveSettings()
+end)
+
+--=========================================================
+-- Infinite Jump System
+--=========================================================
+local infiniteJumpEnabled = false
+local infiniteJumpConnection = nil
+local infiniteJumpPart = nil
+local infiniteJumpBodyVel = nil
+local lastJump = 0
+
+local function doInfiniteJump()
+    local char = player.Character
+    if not char then return end
+    
+    local humanoid = char:FindFirstChildOfClass("Humanoid")
+    local root = char:FindFirstChild("HumanoidRootPart")
+    if not humanoid or not root then return end
+
+    -- Check cooldown
+    if tick() - lastJump < CONFIG.Movement.InfiniteJump.Cooldown then return end
+    lastJump = tick()
+
+    -- Create welded part for anti-detection (like float system)
+    if not infiniteJumpPart or not infiniteJumpPart.Parent then
+        infiniteJumpPart = Instance.new("Part")
+        infiniteJumpPart.Size = Vector3.new(1, 1, 1)
+        infiniteJumpPart.Transparency = 1
+        infiniteJumpPart.Anchored = false
+        infiniteJumpPart.CanCollide = false
+        infiniteJumpPart.Massless = true
+        infiniteJumpPart.Parent = workspace
+        
+        -- Weld to character
+        local weld = Instance.new("Weld")
+        weld.Part0 = root
+        weld.Part1 = infiniteJumpPart
+        weld.C0 = CFrame.new(0, 0, 0)
+        weld.Parent = infiniteJumpPart
+    end
+
+    -- Create BodyVelocity for boost (apply to welded part for anti-detection)
+    local bodyVel = infiniteJumpPart:FindFirstChild("InfiniteJumpBoost") or Instance.new("BodyVelocity")
+    bodyVel.Name = "InfiniteJumpBoost"
+    bodyVel.MaxForce = Vector3.new(0, math.huge, 0) -- Only Y axis
+    bodyVel.Velocity = Vector3.new(0, CONFIG.Movement.InfiniteJump.JumpPower, 0)
+    bodyVel.P = 5000
+    bodyVel.Parent = infiniteJumpPart -- Apply to welded part, not character
+
+    -- Trigger humanoid jump
+    humanoid.Jump = true
+    
+    -- Remove boost after short duration
+    task.delay(0.1, function()
+        if bodyVel and bodyVel.Parent then
+            bodyVel:Destroy()
+        end
+        if humanoid then 
+            humanoid.Jump = false 
+        end
+    end)
+end
+
+enableInfiniteJump = function()
+    if infiniteJumpEnabled then return end
+    infiniteJumpEnabled = true
+    
+    infiniteJumpConnection = RunService.Heartbeat:Connect(function()
+        local char = player.Character
+        if not char then return end
+        
+        local humanoid = char:FindFirstChildOfClass("Humanoid")
+        if not humanoid then return end
+        
+        -- Check for jump input (works on both PC and mobile)
+        local isJumping = false
+        
+        -- PC: Check for Space key
+        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+            isJumping = true
+        end
+        
+        -- Mobile: Check if humanoid is jumping (works with virtual jump button)
+        if humanoid:GetState() == Enum.HumanoidStateType.Jumping then
+            isJumping = true
+        end
+        
+        -- Also check humanoid.Jump property (catches mobile jumps)
+        if humanoid.Jump then
+            isJumping = true
+        end
+        
+        if isJumping then
+            doInfiniteJump()
+        end
+    end)
+end
+
+local function disableInfiniteJump()
+    if not infiniteJumpEnabled then return end
+    infiniteJumpEnabled = false
+    
+    if infiniteJumpConnection then
+        infiniteJumpConnection:Disconnect()
+        infiniteJumpConnection = nil
+    end
+    
+    -- Clean up BodyVelocity from welded part
+    if infiniteJumpPart then
+        local bodyVel = infiniteJumpPart:FindFirstChild("InfiniteJumpBoost")
+        if bodyVel then
+            bodyVel:Destroy()
+        end
+        infiniteJumpPart:Destroy()
+        infiniteJumpPart = nil
+    end
+end
+
+local infiniteJumpSwitch = createSwitch(_G.movementSection, "قفز لا نهائي", CONFIG.Movement.InfiniteJump.Enabled, function(on)
+    CONFIG.Movement.InfiniteJump.Enabled = on
+    _G.saveSettings()
+    if on then
+        enableInfiniteJump()
+        -- Auto-create side toggle when enabled
+        _G.createCircularToggleUI("Infinite Jump", function() return CONFIG.Movement.InfiniteJump.Enabled end, function(state)
+            CONFIG.Movement.InfiniteJump.Enabled = state
+            _G.saveSettings()
+            if state then
+                enableInfiniteJump()
+            else
+                disableInfiniteJump()
+            end
+        end)
+    else
+        disableInfiniteJump()
+        -- Remove side toggle when disabled
+        local existingToggle = _G.circularToggleGui:FindFirstChild("Infinite JumpToggleUI")
+        if existingToggle then
+            _G.OpenCircularToggles["Infinite Jump"] = nil
+            existingToggle:Destroy()
+            _G.saveSettings()
+        end
+    end
+    -- ActiveFeatures removed
+    _G.saveSettings()
+end)
+
+---=========================================================
+--- Platform System (3rd Floor)
+---=========================================================
+local platform, connection
+local platformActive, isRising = false, false
+
+local function destroyPlatform()
+    if platform then 
+        platform:Destroy() 
+        platform = nil 
+    end
+    platformActive = false 
+    isRising = false
+    if connection then 
+        connection:Disconnect() 
+        connection = nil 
+    end
+end
+
+local function canRise()
+    if not platform then return false end
+    local origin = platform.Position + Vector3.new(0, platform.Size.Y/2, 0)
+    local direction = Vector3.new(0, 2, 0)
+    local rayParams = RaycastParams.new()
+    rayParams.FilterDescendantsInstances = {platform, player.Character}
+    rayParams.FilterType = Enum.RaycastFilterType.Blacklist
+    return not workspace:Raycast(origin, direction, rayParams)
+end
+
+local function setupPlatform(character)
+    local rootPart = character:WaitForChild("HumanoidRootPart")
+    
+    -- Clean up on character death
+    character:WaitForChild("Humanoid").Died:Connect(destroyPlatform)
+end
+
+local function enablePlatform(character)
+    local success, err = pcall(function()
+        if platformActive then return end
+        
+        local rootPart = character:WaitForChild("HumanoidRootPart")
+        if not rootPart then
+            warn("Failed to find HumanoidRootPart for Platform")
             return
         end
-        local localRoot = localPlayer.Character.HumanoidRootPart
-        local targetRoot = data.billboard.Adornee
-        if CONFIG.ESP.PlayerESP.ShowDistance and data.distanceLabel then
-            local distance = (localRoot.Position - targetRoot.Position).Magnitude
-            data.distanceLabel.Text = string.format("📏 %.1f studs", distance)
+        
+        platformActive = true
+        
+        platform = Instance.new("Part")
+        platform.Size = Vector3.new(6, 0.5, 6)
+        platform.Anchored = true
+        platform.CanCollide = true
+        platform.Transparency = 0
+        platform.Material = Enum.Material.Neon
+        platform.Color = Color3.fromRGB(100, 200, 255) -- Light blue to match UI
+        platform.Position = rootPart.Position - Vector3.new(0, rootPart.Size.Y/2 + platform.Size.Y/2, 0)
+        platform.Parent = workspace
+
+        local faces = {Enum.NormalId.Top, Enum.NormalId.Bottom, Enum.NormalId.Left, Enum.NormalId.Right, Enum.NormalId.Front, Enum.NormalId.Back}
+        for _, face in ipairs(faces) do
+            local texture = Instance.new("Texture")
+            texture.Texture = "rbxassetid://6731652062"
+            texture.Face = face
+            texture.StudsPerTileU = 4
+            texture.StudsPerTileV = 4
+            texture.Parent = platform
         end
 
-        if CONFIG.ESP.PlayerESP.ShowItems and data.iconFrame then
-            data.iconFrame:ClearAllChildren()
-            local uiLayout = Instance.new("UIGridLayout")
-            uiLayout.CellSize = UDim2.new(0, 24, 0, 24)
-            uiLayout.CellPadding = UDim2.new(0, 3, 0, 3)
-            uiLayout.FillDirection = Enum.FillDirection.Horizontal
-            uiLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-            uiLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-            uiLayout.SortOrder = Enum.SortOrder.LayoutOrder
-            uiLayout.Parent = data.iconFrame
+        isRising = true
+        connection = RunService.Heartbeat:Connect(function(dt)
+            if platform and platformActive then
+                local currentPos = platform.Position
+                local newXZ = Vector3.new(rootPart.Position.X, currentPos.Y, rootPart.Position.Z)
+                if isRising and canRise() then
+                    platform.Position = newXZ + Vector3.new(0, dt * CONFIG.Movement.Rise.Speed, 0)
+                else
+                    isRising = false
+                    platform.Position = newXZ
+                end
+            end
+        end)
+        
+        -- Clean up on character death
+        character:WaitForChild("Humanoid").Died:Connect(destroyPlatform)
+        
+        print("✅ Platform enabled")
+    end)
+    
+    if not success then
+        warn("Platform enable error: " .. tostring(err))
+        destroyPlatform()
+    end
+end
 
-            local items = getBackpackItems(plr)
-            for _, tool in ipairs(items) do
-                local icon = Instance.new("ImageLabel")
-                icon.Size = UDim2.new(0, 24, 0, 24)
-                icon.BackgroundTransparency = 1
-                icon.BorderSizePixel = 0
-                local textureId = tool.TextureId
-                if textureId == "" then
-                    local handle = tool:FindFirstChild("Handle")
-                    if handle then
-                        local decal = handle:FindFirstChildOfClass("Decal")
-                        local mesh = handle:FindFirstChildOfClass("MeshPart") or handle:FindFirstChildOfClass("SpecialMesh")
-                        textureId = (decal and decal.Texture) or (mesh and mesh.TextureId) or "rbxasset://textures/ui/GuiImagePlaceholder.png"
+local function disablePlatform()
+    local success, err = pcall(function()
+        destroyPlatform()
+        print("❌ Platform disabled")
+    end)
+    
+    if not success then
+        warn("Platform disable error: " .. tostring(err))
+    end
+end
+
+local platformSwitch = createSwitch(_G.movementSection, "منصة (Platform)", CONFIG.Movement.Rise.Enabled, function(on)
+    print("🔧 Platform switch toggled:", on)
+    CONFIG.Movement.Rise.Enabled = on
+    _G.saveSettings()
+    _G.SavedToggleStates.Rise = on
+    if on then
+        if player.Character then
+            print("✅ Enabling Platform on existing character")
+            enablePlatform(player.Character)
+        else
+            print("⚠️ No character found, Platform will be enabled on next spawn")
+        end
+        -- Auto-create side toggle when enabled
+        _G.createCircularToggleUI("Platform", function() return CONFIG.Movement.Rise.Enabled end, function(state)
+            CONFIG.Movement.Rise.Enabled = state
+            _G.saveSettings()
+            if state then
+                if player.Character then enablePlatform(player.Character) end
+            else
+                disablePlatform()
+            end
+        end)
+    else
+        print("❌ Disabling Platform")
+        disablePlatform()
+        -- Remove side toggle when disabled
+        local existingToggle = _G.circularToggleGui:FindFirstChild("PlatformToggleUI")
+        if existingToggle then
+            _G.OpenCircularToggles["Platform"] = nil
+            existingToggle:Destroy()
+            _G.saveSettings()
+        end
+    end
+    _G.saveSettings()
+end)
+
+
+local helicopterSwitch = createSwitch(_G.movementSection, "هيلكوبتر", CONFIG.Movement.Helicopter.Enabled, function(on)
+    CONFIG.Movement.Helicopter.Enabled = on
+    _G.saveSettings()
+    if on then
+        if player.Character then
+            enableHelicopter(player.Character)
+        end
+        -- Auto-create side toggle when enabled
+        _G.createCircularToggleUI("Helicopter", function() return CONFIG.Movement.Helicopter.Enabled end, function(state)
+            CONFIG.Movement.Helicopter.Enabled = state
+            _G.saveSettings()
+            if state then
+                if player.Character then enableHelicopter(player.Character) end
+            else
+                disableHelicopter()
+            end
+        end)
+    else
+        disableHelicopter()
+        -- Remove side toggle when disabled
+        local existingToggle = _G.circularToggleGui:FindFirstChild("HelicopterToggleUI")
+        if existingToggle then
+            _G.OpenCircularToggles["Helicopter"] = nil
+            existingToggle:Destroy()
+            _G.saveSettings()
+        end
+    end
+    -- ActiveFeatures removed
+    _G.saveSettings()
+end)
+
+
+--- Fling System
+createSectionHeader(_G.movementSection, "نظام الرمي")
+
+-- Fling variables (Global to save local registers)
+_G.SelectedPlayer = nil
+_G.Flinging = false
+_G.FlingConnection = nil
+_G.GrappleTool = nil
+
+-- Find grapple tool function
+_G.findGrapple = function()
+    local backpack = player:FindFirstChild("Backpack")
+    if not backpack then return nil end
+    _G.GrappleTool = backpack:FindFirstChild("Grapple Hook") or backpack:FindFirstChild("GrappleHook")
+    if not _G.GrappleTool then
+        _G.GrappleTool = workspace:FindFirstChild("Grapple Hook") or workspace:FindFirstChild("GrappleHook")
+        if _G.GrappleTool and _G.GrappleTool:IsA("Tool") then
+            _G.GrappleTool.Parent = backpack
+        end
+    end
+    return _G.GrappleTool
+end
+
+-- Equip grapple function
+_G.equipGrapple = function()
+    if not _G.findGrapple() then return false end
+    local char = player.Character
+    if not char then return false end
+    local equippedTool = char:FindFirstChild("Grapple Hook") or char:FindFirstChild("GrappleHook")
+    if equippedTool then
+        _G.GrappleTool = equippedTool
+        return true
+    end
+    if _G.GrappleTool then
+        _G.GrappleTool.Parent = char
+        return true
+    end
+    return false
+end
+
+-- Start fling function
+_G.startFling = function()
+    if _G.Flinging or not _G.SelectedPlayer then return end
+    _G.Flinging = true
+    
+    if not _G.equipGrapple() then
+        warn("Grapple not found")
+        _G.Flinging = false
+        return
+    end
+
+    local spin, power = 0, 220
+
+    _G.FlingConnection = RunService.Heartbeat:Connect(function()
+        local char = player.Character
+        if not char or not _G.SelectedPlayer or not _G.SelectedPlayer.Character then
+            return
+        end
+
+        local humanoid = char:FindFirstChildOfClass("Humanoid")
+        local rootPart = char:FindFirstChild("HumanoidRootPart")
+        local targetRoot = _G.SelectedPlayer.Character:FindFirstChild("HumanoidRootPart")
+        local targetHumanoid = _G.SelectedPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if not humanoid or not rootPart or not targetRoot or not targetHumanoid then return end
+
+        local distance = (targetRoot.Position - rootPart.Position).Magnitude
+        local net = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Net"))
+        net:RemoteEvent("UseItem"):FireServer(distance / 120)
+
+        humanoid:ChangeState(Enum.HumanoidStateType.Physics)
+        targetHumanoid:ChangeState(Enum.HumanoidStateType.Physics)
+
+        spin = spin + 12
+        local offset = Vector3.new(math.sin(math.rad(spin)) * 2.5, 1.5, math.cos(math.rad(spin)) * 2.5)
+        local prediction = targetRoot.Velocity * 0.3
+        local targetPos = targetRoot.Position + offset + prediction
+        local direction = (targetPos - rootPart.Position).Unit
+        local velocity = direction * power + Vector3.new(0, 65, 0)
+
+        local bodyVelocity = rootPart:FindFirstChild("FlightPower") or Instance.new("BodyVelocity")
+        bodyVelocity.Name = "FlightPower"
+        bodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+        bodyVelocity.Velocity = velocity
+        bodyVelocity.P = 9000
+        bodyVelocity.Parent = rootPart
+
+        local distanceTo = (targetRoot.Position - rootPart.Position).Magnitude
+        if distanceTo < 7 then
+            local targetBodyVelocity = targetRoot:FindFirstChild("TargetFling") or Instance.new("BodyVelocity")
+            targetBodyVelocity.Name = "TargetFling"
+            targetBodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+            targetBodyVelocity.Velocity = (targetRoot.Position - rootPart.Position).Unit * 130 + Vector3.new(0, 100, 0)
+            targetBodyVelocity.P = 6500
+            targetBodyVelocity.Parent = targetRoot
+
+            local targetSpin = targetRoot:FindFirstChild("TargetSpin") or Instance.new("BodyAngularVelocity")
+            targetSpin.Name = "TargetSpin"
+            targetSpin.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+            targetSpin.AngularVelocity = Vector3.new((math.random()-0.5)*25,(math.random()-0.5)*25,(math.random()-0.5)*25)
+            targetSpin.P = 4500
+            targetSpin.Parent = targetRoot
+        end
+    end)
+end
+
+-- Stop fling function
+_G.stopFling = function()
+    if not _G.Flinging then return end
+    _G.Flinging = false
+
+    if _G.FlingConnection then
+        _G.FlingConnection:Disconnect()
+        _G.FlingConnection = nil
+    end
+
+    local char = player.Character
+    if char then
+        local humanoid = char:FindFirstChildOfClass("Humanoid")
+        local rootPart = char:FindFirstChild("HumanoidRootPart")
+        if humanoid then humanoid:ChangeState(Enum.HumanoidStateType.Running) end
+        if rootPart then
+            local bodyVelocity = rootPart:FindFirstChild("FlightPower")
+            if bodyVelocity then bodyVelocity:Destroy() end
+        end
+    end
+
+    if _G.SelectedPlayer and _G.SelectedPlayer.Character then
+        local targetRoot = _G.SelectedPlayer.Character:FindFirstChild("HumanoidRootPart")
+        local targetHumanoid = _G.SelectedPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if targetHumanoid then targetHumanoid:ChangeState(Enum.HumanoidStateType.Running) end
+        if targetRoot then
+            local targetBodyVelocity = targetRoot:FindFirstChild("TargetFling")
+            if targetBodyVelocity then targetBodyVelocity:Destroy() end
+            local targetSpin = targetRoot:FindFirstChild("TargetSpin")
+            if targetSpin then targetSpin:Destroy() end
+        end
+    end
+end
+
+
+-- Fling toggle button with better status feedback
+local flingToggleButton = nil
+
+local function createFlingButton()
+    flingToggleButton = createButton(_G.movementSection, "ارمه بعيد", function()
+        local success, err = pcall(function()
+            if not flingToggleButton then return end
+            
+            if _G.Flinging then
+                _G.stopFling()
+                flingToggleButton.Text = "Fling Em"
+                flingToggleButton.BackgroundColor3 = CONFIG.Colors.Background
+                flingToggleButton.TextColor3 = CONFIG.Colors.Text
+            else
+                if not _G.SelectedPlayer then
+                    warn("Please select a player first!")
+                    return
+                end
+                _G.startFling()
+                flingToggleButton.Text = "Fling Em"
+                flingToggleButton.BackgroundColor3 = Color3.fromRGB(0, 162, 255) -- Bright blue
+                flingToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255) -- White text for contrast
+            end
+        end)
+        if not success then
+            warn("Fling button error: " .. tostring(err))
+        end
+    end)
+end
+
+createFlingButton()
+
+-- Function to update fling button status
+local function updateFlingButtonStatus()
+    local success, err = pcall(function()
+        if not flingToggleButton then return end
+        
+        if _G.Flinging then
+            flingToggleButton.Text = "Fling Em"
+            flingToggleButton.BackgroundColor3 = Color3.fromRGB(0, 162, 255) -- Bright blue
+            flingToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255) -- White text for contrast
+        else
+            flingToggleButton.Text = "Fling Em"
+            flingToggleButton.BackgroundColor3 = CONFIG.Colors.Background
+            flingToggleButton.TextColor3 = CONFIG.Colors.Text
+        end
+    end)
+    if not success then
+        warn("Update fling button status error: " .. tostring(err))
+    end
+end
+
+-- Update button when player is selected
+local originalPlayerSelectButton = playerSelectButton
+playerSelectButton = createButton(_G.movementSection, "اختر لاعب للرمي", function()
+    local success, err = pcall(function()
+        local players = Players:GetPlayers()
+        local otherPlayers = {}
+        for _, p in pairs(players) do
+            if p ~= player then
+                table.insert(otherPlayers, p)
+            end
+        end
+        
+        if #otherPlayers == 0 then
+            playerSelectButton.Text = "No Players Available"
+            playerSelectButton.BackgroundColor3 = CONFIG.Colors.Danger
+            _G.SelectedPlayer = nil
+            updateFlingButtonStatus()
+        return
+    end
+    
+    -- Create player selection UI
+    local playerSelectGui = createProtectedScreenGui("PlayerSelectGui")
+    
+    -- Main frame (draggable)
+    local selectFrame = Instance.new("Frame")
+    selectFrame.Size = UDim2.new(0, 300, 0, math.min(400, 60 + (#otherPlayers * 45)))
+    selectFrame.Position = UDim2.new(0.5, -150, 0.5, -200)
+    selectFrame.BackgroundColor3 = CONFIG.Colors.Panel
+    selectFrame.Parent = playerSelectGui
+    Instance.new("UICorner", selectFrame).CornerRadius = UDim.new(0, 12)
+    
+    local stroke = Instance.new("UIStroke", selectFrame)
+    stroke.Thickness = 2
+    stroke.Color = CONFIG.Colors.Stroke
+    stroke.Transparency = 0.2
+    
+    -- Dragging functionality
+    local dragging = false
+    local dragStart = nil
+    local startPos = nil
+    
+    local function startDrag(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = selectFrame.Position
+            stroke.Transparency = 0 -- Visual feedback
+        end
+    end
+    
+    local function updateDrag(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - dragStart
+            selectFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end
+    
+    local function endDrag(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+            stroke.Transparency = 0.2 -- Reset visual feedback
+        end
+    end
+    
+    -- Apply dragging to the frame
+    selectFrame.InputBegan:Connect(startDrag)
+    selectFrame.InputChanged:Connect(updateDrag)
+    selectFrame.InputEnded:Connect(endDrag)
+    
+    -- Title
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Size = UDim2.new(1, -60, 0, 40)
+    titleLabel.Position = UDim2.new(0, 10, 0, 10)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Text = "Select Player to Fling"
+    titleLabel.TextColor3 = CONFIG.Colors.Text
+    titleLabel.TextSize = 18
+    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    titleLabel.Parent = selectFrame
+    
+    -- Close button
+    local closeBtn = Instance.new("TextButton")
+    closeBtn.Size = UDim2.new(0, 30, 0, 30)
+    closeBtn.Position = UDim2.new(1, -40, 0, 10)
+    closeBtn.BackgroundColor3 = CONFIG.Colors.Danger
+    closeBtn.Text = "x"
+    closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    closeBtn.TextSize = 16
+    closeBtn.Font = Enum.Font.GothamBold
+    closeBtn.AutoButtonColor = false
+    closeBtn.Parent = selectFrame
+    closeBtn.ZIndex = 10
+    Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(0, 15)
+    
+    -- Scroll frame for players
+    local scrollFrame = Instance.new("ScrollingFrame")
+    scrollFrame.Size = UDim2.new(1, -20, 1, -60)
+    scrollFrame.Position = UDim2.new(0, 10, 0, 50)
+    scrollFrame.BackgroundTransparency = 1
+    scrollFrame.ScrollBarThickness = 6
+    scrollFrame.ScrollBarImageColor3 = CONFIG.Colors.Accent
+    scrollFrame.Parent = selectFrame
+    
+    local listLayout = Instance.new("UIListLayout")
+    listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    listLayout.Padding = UDim.new(0, 5)
+    listLayout.Parent = scrollFrame
+    
+    -- Create player buttons
+    for i, targetPlayer in ipairs(otherPlayers) do
+        local playerBtn = Instance.new("TextButton")
+        playerBtn.Size = UDim2.new(1, -10, 0, 35)
+        playerBtn.BackgroundColor3 = CONFIG.Colors.Background
+        playerBtn.Text = targetPlayer.Name .. " (ID: " .. targetPlayer.UserId .. ")"
+        playerBtn.TextColor3 = CONFIG.Colors.Text
+        playerBtn.TextSize = 14
+        playerBtn.Font = Enum.Font.Gotham
+        playerBtn.AutoButtonColor = false
+        playerBtn.Parent = scrollFrame
+        Instance.new("UICorner", playerBtn).CornerRadius = UDim.new(0, 6)
+        
+        local btnStroke = Instance.new("UIStroke", playerBtn)
+        btnStroke.Thickness = 1
+        btnStroke.Color = CONFIG.Colors.Stroke
+        btnStroke.Transparency = 0.5
+        
+        -- Hover effects
+        playerBtn.MouseEnter:Connect(function()
+            playerBtn.BackgroundColor3 = CONFIG.Colors.Accent
+            btnStroke.Transparency = 0.2
+        end)
+        
+        playerBtn.MouseLeave:Connect(function()
+            playerBtn.BackgroundColor3 = CONFIG.Colors.Background
+            btnStroke.Transparency = 0.5
+        end)
+        
+        -- Selection
+        playerBtn.MouseButton1Click:Connect(function()
+            _G.SelectedPlayer = targetPlayer
+            playerSelectButton.Text = "Selected: " .. targetPlayer.Name
+            playerSelectButton.BackgroundColor3 = CONFIG.Colors.Accent
+            playerSelectGui:Destroy()
+            updateFlingButtonStatus() -- Update fling button status
+        end)
+        
+        -- Mobile support for player selection
+        playerBtn.TouchTap:Connect(function()
+            _G.SelectedPlayer = targetPlayer
+            playerSelectButton.Text = "Selected: " .. targetPlayer.Name
+            playerSelectButton.BackgroundColor3 = CONFIG.Colors.Accent
+            playerSelectGui:Destroy()
+            updateFlingButtonStatus() -- Update fling button status
+        end)
+    end
+    
+    -- Update scroll canvas size
+    scrollFrame.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y)
+    listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        scrollFrame.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y)
+    end)
+    
+    -- Close button functionality
+    closeBtn.MouseButton1Click:Connect(function()
+        playerSelectGui:Destroy()
+    end)
+    
+    -- Mobile support for close button
+    closeBtn.TouchTap:Connect(function()
+        playerSelectGui:Destroy()
+    end)
+    
+    -- Click outside to close (use a frame instead of ScreenGui)
+    local backgroundFrame = Instance.new("Frame")
+    backgroundFrame.Size = UDim2.new(1, 0, 1, 0)
+    backgroundFrame.Position = UDim2.new(0, 0, 0, 0)
+    backgroundFrame.BackgroundTransparency = 1
+    backgroundFrame.Parent = playerSelectGui
+    
+    backgroundFrame.MouseButton1Click:Connect(function()
+        playerSelectGui:Destroy()
+    end)
+    
+    -- Mobile support for click outside to close
+    backgroundFrame.TouchTap:Connect(function()
+        playerSelectGui:Destroy()
+    end)
+    
+    selectFrame.MouseButton1Click:Connect(function(input)
+        input.Handled = true -- Prevent closing when clicking inside the frame
+    end)
+    end)
+    if not success then
+        warn("Player selection error: " .. tostring(err))
+    end
+end)
+
+
+-- Visual Section
+createSectionHeader(_G.visualSection, "تحكم الـ ESP")
+_G.playerESPSwitch = createSwitch(_G.visualSection, "ESP اللاعبين", _G.SavedToggleStates and _G.SavedToggleStates.PlayerESP or false, function(on)
+    if on then
+        enableESP()
+        -- Auto-create side toggle when enabled
+        _G.createCircularToggleUI("Player ESP", function() return _G.ESP_Enabled end, function(state)
+            if state then enableESP() else disableESP() end
+        end)
+    else
+        disableESP()
+        -- Remove side toggle when disabled
+        local existingToggle = _G.circularToggleGui:FindFirstChild("Player ESPToggleUI")
+        if existingToggle then
+            _G.OpenCircularToggles["Player ESP"] = nil
+            existingToggle:Destroy()
+            _G.saveSettings()
+        end
+    end
+    -- ActiveFeatures removed
+    _G.saveSettings()
+end)
+
+_G.plotESPSwitch = createSwitch(_G.visualSection, "ESP المزارع", _G.SavedToggleStates and _G.SavedToggleStates.PlotESP or false, function(on)
+    if on then
+        enablePlotESP()
+        -- Auto-create side toggle when enabled
+        _G.createCircularToggleUI("Plot ESP", function() return _G.PlotESP_Enabled end, function(state)
+            if state then enablePlotESP() else disablePlotESP() end
+        end)
+    else
+        disablePlotESP()
+        -- Remove side toggle when disabled
+        local existingToggle = _G.circularToggleGui:FindFirstChild("Plot ESPToggleUI")
+        if existingToggle then
+            _G.OpenCircularToggles["Plot ESP"] = nil
+            existingToggle:Destroy()
+            _G.saveSettings()
+        end
+    end
+    -- ActiveFeatures removed
+    _G.saveSettings()
+end)
+
+-- Plot Time ESP switch will be created later after functions are defined
+
+-- Patched Section
+createSectionHeader(_G.patchedSection, "الميزات الملغاة")
+local invisibilitySwitch = createSwitch(_G.patchedSection, "الاختفاء (ملغي)", _G.SavedToggleStates and _G.SavedToggleStates.Invisibility or false, function(on)
+    setInvisibility(on)
+    if on then
+        -- Auto-create side toggle when enabled
+        _G.createCircularToggleUI("Invisibility", function() return invisibilitySwitch.get() end, function(state) invisibilitySwitch.set(state) end)
+    else
+        -- Remove side toggle when disabled
+        local existingToggle = _G.circularToggleGui:FindFirstChild("InvisibilityToggleUI")
+        if existingToggle then
+            _G.OpenCircularToggles["Invisibility"] = nil
+            existingToggle:Destroy()
+            _G.saveSettings()
+        end
+    end
+    -- ActiveFeatures removed
+    _G.saveSettings()
+end)
+local _, flingSwitchInstance = setupFlingControl(_G.patchedSection)
+
+
+-- Server Section (Global Variables to Save Local Registers)
+_G.ServerHopActive = false
+_G.CurrentServerId = game.JobId
+
+_G.getServerList = function()
+    local ok, result = pcall(function()
+        local response = _G.safeHttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100")
+        if not response then
+            return {}
+        end
+        return HttpService:JSONDecode(response)
+    end)
+    return ok and result and result.data and result.data or {}
+end
+
+_G.joinBiggestServer = function()
+    pcall(function()
+        local servers = _G.getServerList()
+        local biggest, maxPlayers = nil, 0
+        for _, server in ipairs(servers) do
+            if server.id ~= _G.CurrentServerId and server.playing and server.maxPlayers and 
+               server.playing < server.maxPlayers and server.playing > maxPlayers then
+                biggest, maxPlayers = server, server.playing
+            end
+        end
+        if biggest then
+            print("🔄 Joining biggest server with " .. biggest.playing .. "/" .. biggest.maxPlayers .. " players")
+            TeleportService:TeleportToPlaceInstance(game.PlaceId, biggest.id, player)
+        else
+            game.StarterGui:SetCore("SendNotification", {Title = "Ken HUB", Text = "No available servers found!", Duration = 3})
+        end
+    end)
+end
+
+_G.joinSmallestServer = function()
+    pcall(function()
+        local servers = _G.getServerList()
+        local smallest, minPlayers = nil, math.huge
+        for _, server in ipairs(servers) do
+            if server.id ~= _G.CurrentServerId and server.playing and server.maxPlayers and 
+               server.playing < server.maxPlayers and server.playing < minPlayers then
+                smallest, minPlayers = server, server.playing
+            end
+        end
+        if smallest then
+            print("🔄 Joining smallest server with " .. smallest.playing .. "/" .. smallest.maxPlayers .. " players")
+            TeleportService:TeleportToPlaceInstance(game.PlaceId, smallest.id, player)
+        else
+            game.StarterGui:SetCore("SendNotification", {Title = "ken HUB", Text = "No available servers found!", Duration = 3})
+        end
+    end)
+end
+
+_G.rejoinServer = function()
+    pcall(function()
+        print("🔄 Rejoining current server...")
+        TeleportService:TeleportToPlaceInstance(game.PlaceId, _G.CurrentServerId, player)
+    end)
+end
+
+_G.toggleServerHop = function(on)
+    _G.ServerHopActive = on
+    if on then
+        -- Start server hopping
+        task.spawn(function()
+            while _G.ServerHopActive do
+                local success, err = pcall(function()
+                    local serverList = _G.getServerList()
+                    if serverList and #serverList > 0 then
+                        -- Filter out current server and full servers
+                        local validServers = {}
+                        for _, server in ipairs(serverList) do
+                            if server.id and server.id ~= _G.CurrentServerId and 
+                               server.playing and server.maxPlayers and 
+                               server.playing < server.maxPlayers then
+                                table.insert(validServers, server)
+                            end
+                        end
+                        
+                        if #validServers > 0 then
+                            local target = validServers[math.random(1, #validServers)]
+                            print("🔄 Hopping to server with " .. target.playing .. "/" .. target.maxPlayers .. " players")
+                            TeleportService:TeleportToPlaceInstance(game.PlaceId, target.id, player)
+                        else
+                            warn("No valid servers available for hopping")
+                        end
                     else
-                        textureId = "rbxasset://textures/ui/GuiImagePlaceholder.png"
+                        warn("No servers available for hopping")
+                    end
+                end)
+                if not success then
+                    warn("Server hop failed: " .. tostring(err) .. ", retrying in 10 seconds...")
+                    task.wait(10) -- Wait longer on failure
+                else
+                    task.wait(15) -- Wait longer between successful hops
+                end
+            end
+        end)
+    end
+end
+
+createSectionHeader(_G.serverSection, "خيارات السيرفر")
+local serverHopSwitch = createSwitch(_G.serverSection, "تنقل تلقائي بين السيرفرات", false, function(on)
+    _G.toggleServerHop(on)
+    -- ActiveFeatures removed
+    _G.saveSettings()
+end)
+
+-- Server Buttons
+createButton(_G.serverSection, "اعادة الانضمام", _G.rejoinServer)
+createButton(_G.serverSection, "انضم للسيرفر الأكبر", _G.joinBiggestServer)
+createButton(_G.serverSection, "انضم للسيرفر الأصغر", _G.joinSmallestServer)
+
+
+-- Brainrot ESP toggle will be created after function definitions
+
+
+
+
+
+
+
+-- Settings Section
+createSectionHeader(settingsContent, "اعدادات الـ ESP")
+
+-- Player ESP Toggles
+createSwitch(settingsContent, "إظهار المسافة", CONFIG.ESP.PlayerESP.ShowDistance, function(on)
+    local success, _ = pcall(function()
+        CONFIG.ESP.PlayerESP.ShowDistance = on
+        _G.saveSettings()
+        -- Recreate all player ESP billboards
+        if ESP_Enabled then
+            for plr, data in pairs(ESP_Data) do
+                if typeof(plr) == "Instance" and data.billboard then
+                    data.billboard:Destroy()
+                    local newBillboard, newDistanceLabel, newIconFrame = createBillboardGui(plr, plr.Character)
+                    if newBillboard then
+                        data.billboard = newBillboard
+                        data.distanceLabel = newDistanceLabel
+                        data.iconFrame = newIconFrame
                     end
                 end
-                icon.Image = textureId
-                icon.ImageColor3 = Color3.fromRGB(255, 255, 255)
-                icon.Parent = data.iconFrame
-                
-                -- Rounded corners for icons
-                local iconCorner = Instance.new("UICorner")
-                iconCorner.CornerRadius = UDim.new(0, 4)
-                iconCorner.Parent = icon
-                
-                local iconStroke = Instance.new("UIStroke", icon)
-                iconStroke.Thickness = 0.5
-                iconStroke.Color = Color3.fromRGB(0, 0, 0)
-                iconStroke.Transparency = 0.3
-
-                local tooltip = Instance.new("TextLabel")
-                tooltip.Size = UDim2.new(0, 100, 0, 20)
-                tooltip.Position = UDim2.new(0, 0, 1, 2)
-                tooltip.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-                tooltip.BackgroundTransparency = 0.4
-                tooltip.Text = tool.Name
-                tooltip.TextColor3 = CONFIG.Colors.Text
-                tooltip.TextScaled = true
-                tooltip.TextSize = 12
-                tooltip.Font = Enum.Font.SourceSans
-                tooltip.Visible = false
-                tooltip.Parent = icon
-                local tooltipStroke = Instance.new("UIStroke", tooltip)
-                tooltipStroke.Thickness = 0.8
-                tooltipStroke.Color = CONFIG.Colors.Stroke
-                icon.MouseEnter:Connect(function()
-                    tooltip.Visible = true
-                end)
-                icon.MouseLeave:Connect(function()
-                    tooltip.Visible = false
-                end)
             end
         end
     end)
     if not success then
-        warn("Failed to update billboard for player: " .. plr.Name)
+        warn("Failed to update Player ESP Distance setting")
     end
-end
+end)
 
-local function attachHighlightToCharacter(plr, char)
-     if not _G.ESP_Enabled or not char then return end
+createSwitch(settingsContent, "إظهار الأدوات", CONFIG.ESP.PlayerESP.ShowItems, function(on)
     local success, _ = pcall(function()
-        local oldHighlight = char:FindFirstChildOfClass("Highlight")
-        if oldHighlight then oldHighlight:Destroy() end
-        local oldBillboard = char:FindFirstChild("ESP_Billboard")
-        if oldBillboard then oldBillboard:Destroy() end
-
-        local highlight = Instance.new("Highlight")
-        highlight.FillTransparency = CONFIG.ESP.PlayerESP.FillTransparency
-        highlight.OutlineTransparency = CONFIG.ESP.PlayerESP.OutlineTransparency
-        highlight.FillColor = CONFIG.ESP.PlayerESP.HighlightColor
-        highlight.OutlineColor = CONFIG.ESP.PlayerESP.HighlightColor
-        highlight.Adornee = char
-        highlight.Parent = char
-
-        local billboard, distanceLabel, iconFrame = createBillboardGui(plr, char)
-        if not billboard then return end
-
-         _G.ESP_Data[plr] = _G.ESP_Data[plr] or {}
-         _G.ESP_Data[plr].highlight = highlight
-         _G.ESP_Data[plr].billboard = billboard
-         _G.ESP_Data[plr].distanceLabel = distanceLabel
-         _G.ESP_Data[plr].iconFrame = iconFrame
-
-        local lastUpdate = 0
-        _G.ESP_Data[plr].updateConn = RunService.Heartbeat:Connect(function(deltaTime)
-            lastUpdate = lastUpdate + deltaTime
-            if lastUpdate >= CONFIG.ESP.UpdateInterval then
-                updateBillboard(plr, _G.ESP_Data[plr])
-                lastUpdate = 0
+        CONFIG.ESP.PlayerESP.ShowItems = on
+        _G.saveSettings()
+        -- Recreate all player ESP billboards
+        if ESP_Enabled then
+            for plr, data in pairs(ESP_Data) do
+                if typeof(plr) == "Instance" and data.billboard then
+                    data.billboard:Destroy()
+                    local newBillboard, newDistanceLabel, newIconFrame = createBillboardGui(plr, plr.Character)
+                    if newBillboard then
+                        data.billboard = newBillboard
+                        data.distanceLabel = newDistanceLabel
+                        data.iconFrame = newIconFrame
+                    end
+                end
             end
-        end)
+        end
     end)
     if not success then
-        warn("Failed to attach ESP to character: " .. plr.Name)
+        warn("Failed to update Player ESP Items setting")
     end
-end
+end)
 
-local function enableESP()
-     if _G.ESP_Enabled then return end
+-- Player ESP Color Picker
+createSectionHeader(settingsContent, "لون ESP اللاعب")
+local playerColorButton = Instance.new("TextButton")
+playerColorButton.Size = UDim2.new(1, 0, 0, 40)
+playerColorButton.BackgroundColor3 = CONFIG.ESP.PlayerESP.HighlightColor
+playerColorButton.Text = "Pick Player ESP Color"
+playerColorButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+playerColorButton.Font = Enum.Font.GothamBold
+playerColorButton.TextSize = 16
+playerColorButton.AutoButtonColor = false
+playerColorButton.Parent = settingsContent
+Instance.new("UICorner", playerColorButton).CornerRadius = UDim.new(0, 8)
+local playerColorStroke = Instance.new("UIStroke", playerColorButton)
+playerColorStroke.Thickness = 1
+playerColorStroke.Color = Color3.fromRGB(255, 255, 255)
+playerColorStroke.Transparency = 0.3
+
+playerColorButton.MouseButton1Click:Connect(function()
     local success, _ = pcall(function()
-         _G.ESP_Enabled = true
+        -- Simple color picker using random colors for demo
+        local colors = {
+            Color3.fromRGB(255, 0, 0),    -- Red
+            Color3.fromRGB(0, 255, 0),    -- Green
+            Color3.fromRGB(0, 0, 255),    -- Blue
+            Color3.fromRGB(255, 255, 0),  -- Yellow
+            Color3.fromRGB(255, 0, 255),  -- Magenta
+            Color3.fromRGB(0, 255, 255),  -- Cyan
+            Color3.fromRGB(255, 165, 0),  -- Orange
+            Color3.fromRGB(128, 0, 128),  -- Purple
+        }
+        local randomColor = colors[math.random(1, #colors)]
+        CONFIG.ESP.PlayerESP.HighlightColor = randomColor
+        playerColorButton.BackgroundColor3 = randomColor
+        _G.saveSettings()
+        -- Update existing highlights with new color
+        for plr, data in pairs(_G.ESP_Data) do
+            if typeof(plr) == "Instance" and data.highlight and plr.Character then
+                -- Update existing highlight color
+                pcall(function() 
+                    data.highlight.FillColor = CONFIG.ESP.PlayerESP.HighlightColor
+                    data.highlight.OutlineColor = CONFIG.ESP.PlayerESP.HighlightColor
+                    print("🎨 Updated Player ESP color for: " .. plr.Name)
+                end)
+            end
+        end
+        
+        -- Also update any existing highlights in the character
         for _, plr in ipairs(Players:GetPlayers()) do
-            if plr ~= player then
-                local charConn = plr.CharacterAdded:Connect(function(c)
-                    c:WaitForChild("HumanoidRootPart", 5)
-                    attachHighlightToCharacter(plr, c)
-                end)
-_G.ESP_Data[plr] = _G.ESP_Data[plr] or {}
-_G.ESP_Data[plr].charConn = charConn
-                if plr.Character then
-                    for _, part in ipairs(plr.Character:GetDescendants()) do
-                        if part:IsA("BasePart") and part.Transparency >= 1 then
-                            part.LocalTransparencyModifier = 0.5
-                        end
-                    end
-                    attachHighlightToCharacter(plr, plr.Character)
+            if plr ~= player and plr.Character then
+                local existingHighlight = plr.Character:FindFirstChildOfClass("Highlight")
+                if existingHighlight then
+                    pcall(function()
+                        existingHighlight.FillColor = CONFIG.ESP.PlayerESP.HighlightColor
+                        existingHighlight.OutlineColor = CONFIG.ESP.PlayerESP.HighlightColor
+                        print("🎨 Updated existing highlight color for: " .. plr.Name)
+                    end)
                 end
             end
         end
-        _G.ESP_Data.playersConn = Players.PlayerAdded:Connect(function(plr)
-            if plr == player then return end
-            local charConn = plr.CharacterAdded:Connect(function(c)
-                c:WaitForChild("HumanoidRootPart", 5)
-                attachHighlightToCharacter(plr, c)
-            end)
-            -- Refresh plot time ESP when players join
-            pcall(function()
-                if refreshPlotTimeESP then
-            refreshPlotTimeESP()
-                end
-            end)
-_G.ESP_Data[plr] = _G.ESP_Data[plr] or {}
-_G.ESP_Data[plr].charConn = charConn
-            if plr.Character then
-                for _, part in ipairs(plr.Character:GetDescendants()) do
-                    if part:IsA("BasePart") and part.Transparency >= 1 then
-                        part.LocalTransparencyModifier = 0.5
-                    end
-                end
-                attachHighlightToCharacter(plr, plr.Character)
-            end
-        end)
-        _G.ESP_Data.leaveConn = Players.PlayerRemoving:Connect(function(plr)
-            if _G.ESP_Data[plr] then
-                if _G.ESP_Data[plr].charConn then pcall(function() _G.ESP_Data[plr].charConn:Disconnect() end) end
-                if _G.ESP_Data[plr].highlight then pcall(function() _G.ESP_Data[plr].highlight:Destroy() end) end
-                if _G.ESP_Data[plr].billboard then pcall(function() _G.ESP_Data[plr].billboard:Destroy() end) end
-                if _G.ESP_Data[plr].updateConn then pcall(function() _G.ESP_Data[plr].updateConn:Disconnect() end) end
-                if plr.Character then
-                    for _, part in ipairs(plr.Character:GetDescendants()) do
-                        if part:IsA("BasePart") then
-                            part.LocalTransparencyModifier = 0
-                        end
-                    end
-                end
-                _G.ESP_Data[plr] = nil
-            end
-            -- Refresh plot time ESP when players leave
-            refreshPlotTimeESP()
-        end)
     end)
     if not success then
-        warn("Failed to enable ESP")
-        _G.ESP_Enabled = false
+        warn("Failed to update Player ESP Color")
     end
-end
+end)
 
-local function disableESP()
-    if not _G.ESP_Enabled then return end
+-- Plot ESP Toggles
+createSectionHeader(settingsContent, "اعدادات Plot ESP")
+createSwitch(settingsContent, "مسافة المزرعة", CONFIG.ESP.PlotESP.ShowDistance, function(on)
     local success, _ = pcall(function()
-        _G.ESP_Enabled = false
-        if _G.ESP_Data.playersConn then
-            pcall(function() _G.ESP_Data.playersConn:Disconnect() end)
-            _G.ESP_Data.playersConn = nil
-        end
-        if _G.ESP_Data.leaveConn then
-            pcall(function() _G.ESP_Data.leaveConn:Disconnect() end)
-            _G.ESP_Data.leaveConn = nil
-        end
-        for plr, data in pairs(ESP_Data) do
-            if typeof(plr) == "Instance" then
-                if data.charConn then pcall(function() data.charConn:Disconnect() end) end
-                if data.highlight then pcall(function() data.highlight:Destroy() end) end
-                if data.billboard then pcall(function() data.billboard:Destroy() end) end
-                if data.updateConn then pcall(function() data.updateConn:Disconnect() end) end
-                if plr.Character then
-                    for _, part in ipairs(plr.Character:GetDescendants()) do
-                        if part:IsA("BasePart") then
-                            part.LocalTransparencyModifier = 0
-                        end
+        CONFIG.ESP.PlotESP.ShowDistance = on
+        _G.saveSettings()
+        -- Recreate all plot ESP billboards
+        if _G.PlotESP_Enabled then
+            for plot, data in pairs(_G.PlotESP_Data) do
+                if typeof(plot) == "Instance" and data.billboard then
+                    data.billboard:Destroy()
+                    local newBillboard, newDistanceLabel, newOwnerLabel, newTimeLabel = createPlotBillboardGui(plot)
+                    if newBillboard then
+                        data.billboard = newBillboard
+                        data.distanceLabel = newDistanceLabel
+                        data.ownerLabel = newOwnerLabel
+                        data.timeLabel = newTimeLabel
                     end
                 end
-                _G.ESP_Data[plr] = nil
             end
         end
     end)
     if not success then
-        warn("Failed to disable ESP")
+        warn("Failed to update Plot ESP Distance setting")
+    end
+end)
+
+createSwitch(settingsContent, "صاحب المزرعة", CONFIG.ESP.PlotESP.ShowOwner, function(on)
+    local success, _ = pcall(function()
+        CONFIG.ESP.PlotESP.ShowOwner = on
+        _G.saveSettings()
+        -- Recreate all plot ESP billboards
+        if _G.PlotESP_Enabled then
+            for plot, data in pairs(_G.PlotESP_Data) do
+                if typeof(plot) == "Instance" and data.billboard then
+                    data.billboard:Destroy()
+                    local newBillboard, newDistanceLabel, newOwnerLabel, newTimeLabel = createPlotBillboardGui(plot)
+                    if newBillboard then
+                        data.billboard = newBillboard
+                        data.distanceLabel = newDistanceLabel
+                        data.ownerLabel = newOwnerLabel
+                        data.timeLabel = newTimeLabel
+                    end
+                end
+            end
+        end
+    end)
+    if not success then
+        warn("Failed to update Plot ESP Owner setting")
+    end
+end)
+
+createSwitch(settingsContent, "وقت المزرعة", CONFIG.ESP.PlotESP.ShowTime, function(on)
+    local success, _ = pcall(function()
+        CONFIG.ESP.PlotESP.ShowTime = on
+        _G.saveSettings()
+        -- Recreate all plot ESP billboards
+        if _G.PlotESP_Enabled then
+            for plot, data in pairs(_G.PlotESP_Data) do
+                if typeof(plot) == "Instance" and data.billboard then
+                    data.billboard:Destroy()
+                    local newBillboard, newDistanceLabel, newOwnerLabel, newTimeLabel = createPlotBillboardGui(plot)
+                    if newBillboard then
+                        data.billboard = newBillboard
+                        data.distanceLabel = newDistanceLabel
+                        data.ownerLabel = newOwnerLabel
+                        data.timeLabel = newTimeLabel
+                    end
+                end
+            end
+        end
+    end)
+    if not success then
+        warn("Failed to update Plot ESP Time setting")
+    end
+end)
+
+-- Plot ESP Color Picker
+createSectionHeader(settingsContent, "لون Plot ESP")
+local plotColorButton = Instance.new("TextButton")
+plotColorButton.Size = UDim2.new(1, 0, 0, 40)
+plotColorButton.BackgroundColor3 = CONFIG.ESP.PlotESP.HighlightColor
+plotColorButton.Text = "Pick Plot ESP Color"
+plotColorButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+plotColorButton.Font = Enum.Font.GothamBold
+plotColorButton.TextSize = 16
+plotColorButton.AutoButtonColor = false
+plotColorButton.Parent = settingsContent
+Instance.new("UICorner", plotColorButton).CornerRadius = UDim.new(0, 8)
+local plotColorStroke = Instance.new("UIStroke", plotColorButton)
+plotColorStroke.Thickness = 1
+plotColorStroke.Color = Color3.fromRGB(255, 255, 255)
+plotColorStroke.Transparency = 0.3
+
+plotColorButton.MouseButton1Click:Connect(function()
+    local success, _ = pcall(function()
+        -- Simple color picker using random colors for demo
+        local colors = {
+            Color3.fromRGB(255, 0, 0),    -- Red
+            Color3.fromRGB(0, 255, 0),    -- Green
+            Color3.fromRGB(0, 0, 255),    -- Blue
+            Color3.fromRGB(255, 255, 0),  -- Yellow
+            Color3.fromRGB(255, 0, 255),  -- Magenta
+            Color3.fromRGB(0, 255, 255),  -- Cyan
+            Color3.fromRGB(255, 165, 0),  -- Orange
+            Color3.fromRGB(128, 0, 128),  -- Purple
+        }
+        local randomColor = colors[math.random(1, #colors)]
+        CONFIG.ESP.PlotESP.HighlightColor = randomColor
+        plotColorButton.BackgroundColor3 = randomColor
+        _G.saveSettings()
+        -- Update existing highlights
+        for plot, data in pairs(_G.PlotESP_Data) do
+            if typeof(plot) == "Instance" and data.highlight then
+                data.highlight.OutlineColor = CONFIG.ESP.PlotESP.HighlightColor
+            end
+        end
+    end)
+    if not success then
+        warn("Failed to update Plot ESP Color")
+    end
+end)
+
+-- Plot Time Size Slider
+createSectionHeader(settingsContent, "حجم وقت الـ Plot")
+local timeSizeSlider = Instance.new("Frame")
+timeSizeSlider.Size = UDim2.new(1, 0, 0, 50)
+timeSizeSlider.BackgroundTransparency = 1
+timeSizeSlider.Parent = settingsContent
+
+local timeSizeLabel = Instance.new("TextLabel")
+timeSizeLabel.Size = UDim2.new(1, 0, 0, 20)
+timeSizeLabel.Position = UDim2.new(0, 0, 0, 0)
+timeSizeLabel.BackgroundTransparency = 1
+timeSizeLabel.Text = "Plot Time Text Size: " .. CONFIG.ESP.PlotESP.TimeTextSize
+timeSizeLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+timeSizeLabel.Font = Enum.Font.Gotham
+timeSizeLabel.TextSize = 14
+timeSizeLabel.TextXAlignment = Enum.TextXAlignment.Left
+timeSizeLabel.Parent = timeSizeSlider
+
+local timeSizeBar = Instance.new("Frame")
+timeSizeBar.Size = UDim2.new(1, 0, 0, 20)
+timeSizeBar.Position = UDim2.new(0, 0, 0, 25)
+timeSizeBar.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+timeSizeBar.Parent = timeSizeSlider
+Instance.new("UICorner", timeSizeBar).CornerRadius = UDim.new(0, 10)
+
+local timeSizeFill = Instance.new("Frame")
+timeSizeFill.Size = UDim2.new((CONFIG.ESP.PlotESP.TimeTextSize - 16) / (48 - 16), 0, 1, 0)
+timeSizeFill.Position = UDim2.new(0, 0, 0, 0)
+timeSizeFill.BackgroundColor3 = CONFIG.Colors.Accent
+timeSizeFill.Parent = timeSizeBar
+Instance.new("UICorner", timeSizeFill).CornerRadius = UDim.new(0, 10)
+
+local timeSizeButton = Instance.new("TextButton")
+timeSizeButton.Size = UDim2.new(0, 20, 0, 20)
+local relativeX = math.clamp((CONFIG.ESP.PlotESP.TimeTextSize - 16) / (48 - 16), 0, 1)
+timeSizeButton.Position = UDim2.new(relativeX, -10, 0, 0)
+timeSizeButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+timeSizeButton.Text = ""
+timeSizeButton.AutoButtonColor = false
+timeSizeButton.Parent = timeSizeBar
+Instance.new("UICorner", timeSizeButton).CornerRadius = UDim.new(0, 10)
+
+--=========================================================
+-- Brainrot ESP System
+--=========================================================
+_G.brainrotESPEnabled = false
+_G.brainrotRefreshLoop = nil
+_G.brainrotLastHighlighted = nil
+
+-- Converts "$100M/s" style text into numbers
+local function convertToNumber(text)
+    text = text:gsub("%$", ""):gsub("/s", "") -- Remove $ and /s
+    local multiplier = 1
+
+    if text:find("K") then
+        multiplier = 1e3
+        text = text:gsub("K", "")
+    elseif text:find("M") then
+        multiplier = 1e6
+        text = text:gsub("M", "")
+    elseif text:find("B") then
+        multiplier = 1e9
+        text = text:gsub("B", "")
+    elseif text:find("T") then
+        multiplier = 1e12
+        text = text:gsub("T", "")
+    end
+
+    local num = tonumber(text)
+    return num and num * multiplier or 0
+end
+
+-- Reset a BillboardGui back to default
+local function resetBillboard(billboard)
+    if billboard then
+        billboard.MaxDistance = 60
+        billboard.Size = UDim2.new(15, 0, 5, 0)
+        billboard.SizeOffset = Vector2.new(0, 0)
+                            end
+                        end
+
+-- Check if any ancestor is named "Base"
+local function hasBaseParent(obj)
+    local parent = obj.Parent
+    while parent do
+        if parent.Name == "Base" then
+            return true
+        end
+        parent = parent.Parent
+    end
+    return false
+end
+
+-- Update ESP logic
+local function updateBrainrotESP()
+    local highestBillboard = nil
+    local highestValue = 0
+
+    -- Look through workspace for all AnimalOverhead BillboardGuis
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if obj:IsA("BillboardGui") and obj.Name == "AnimalOverhead" and hasBaseParent(obj) then
+            local genLabel = obj:FindFirstChild("Generation")
+            if genLabel and genLabel:IsA("TextLabel") then
+                local value = convertToNumber(genLabel.Text)
+                if value > highestValue then
+                    highestValue = value
+                    highestBillboard = obj
+        end
+    end
+        end
+    end
+
+    -- Reset previous highlighted billboard if changed
+    if lastHighlighted and lastHighlighted ~= highestBillboard then
+        resetBillboard(lastHighlighted)
+    end
+
+    -- Highlight the new highest billboard
+    if highestBillboard then
+        highestBillboard.MaxDistance = 100000
+        highestBillboard.Size = UDim2.new(40, 0, 50, 0)
+        highestBillboard.SizeOffset = Vector2.new(0.4, 1)
+        lastHighlighted = highestBillboard
+    else
+        lastHighlighted = nil
+    end
+end
+
+-- Enable ESP
+local function enableBrainrotESP()
+    if refreshLoop then refreshLoop:Disconnect() end
+
+    -- Run immediately when toggled on
+    updateBrainrotESP()
+
+    -- Then refresh every 2 seconds
+    local lastRefresh = tick()
+    refreshLoop = RunService.Heartbeat:Connect(function()
+        if tick() - lastRefresh >= 2 then
+            updateBrainrotESP()
+            lastRefresh = tick()
+        end
+    end)
+end
+
+-- Disable ESP
+local function disableBrainrotESP()
+    if refreshLoop then
+        refreshLoop:Disconnect()
+        refreshLoop = nil
+    end
+
+    -- Reset last highlighted to default
+    if lastHighlighted then
+        resetBillboard(lastHighlighted)
+        lastHighlighted = nil
     end
 end
 
 --=========================================================
--- Plot ESP System
+-- Plot Time ESP System
 --=========================================================
-_G.PlotESP_Enabled = false
-_G.PlotESP_Data = {}
+_G.PlotTimeESP_Enabled = false
+_G.PlotTimeESP_Data = {}
 
-local function createPlotBillboardGui(plot)
-    local success, billboard, distanceLabel, ownerLabel, timeLabel = pcall(function()
+local function createPlotTimeBillboard(plot)
+    local success, billboard, timeLabel = pcall(function()
         local spawnPart = plot:FindFirstChild("Spawn")
-        if not spawnPart or not spawnPart:IsA("BasePart") then return nil, nil, nil, nil end
-
-        local height = 30
-        if CONFIG.ESP.PlotESP.ShowDistance then height = height + 20 end
-        if CONFIG.ESP.PlotESP.ShowOwner then height = height + 30 end
-        if CONFIG.ESP.PlotESP.ShowTime then height = height + 20 end
+        if not spawnPart or not spawnPart:IsA("BasePart") then
+            warn("No valid Spawn part found in plot: " .. plot.Name)
+            return nil, nil
+        end
 
         local gui = Instance.new("BillboardGui")
-        gui.Name = "PlotESP_Billboard"
+        gui.Name = "PlotTimeESP_Billboard"
         gui.Adornee = spawnPart
-        gui.Size = UDim2.new(0, 200, 0, height)
+        gui.Size = UDim2.new(0, 200, 0, 30)
         gui.SizeOffset = Vector2.new(0, 0)
-        gui.StudsOffset = Vector3.new(0, 3, 0)
+        gui.StudsOffset = Vector3.new(0, 8, 0)
         gui.AlwaysOnTop = true
         gui.MaxDistance = 10000
         gui.Parent = spawnPart
@@ -2904,224 +4450,45 @@ local function createPlotBillboardGui(plot)
         frame.BackgroundTransparency = 1
         frame.Parent = gui
 
-        local yOffset = 0
-        local ownerLabel
-        if CONFIG.ESP.PlotESP.ShowOwner then
-            ownerLabel = Instance.new("TextLabel")
-            ownerLabel.Size = UDim2.new(1, 0, 0.4, 0)
-            ownerLabel.Position = UDim2.new(0, 0, 0, yOffset)
-            ownerLabel.Text = "Owner: Loading..."
-            ownerLabel.TextColor3 = CONFIG.Colors.Text
-            ownerLabel.BackgroundTransparency = 1
-            ownerLabel.TextScaled = true
-            ownerLabel.TextSize = CONFIG.ESP.PlotESP.OwnerTextSize
-            ownerLabel.Font = Enum.Font.SourceSansBold
-            ownerLabel.Parent = frame
-            local ownerStroke = Instance.new("UIStroke", ownerLabel)
-            ownerStroke.Thickness = 0.5
-            ownerStroke.Color = Color3.fromRGB(0, 0, 0)
-            ownerStroke.Transparency = 0.4
-            yOffset = yOffset + 0.4
-        end
+        local timeLabel = Instance.new("TextLabel")
+        timeLabel.Size = UDim2.new(1, 0, 1, 0)
+        timeLabel.Position = UDim2.new(0, 0, 0, 0)
+        timeLabel.Text = "Time: Calculating..."
+        timeLabel.TextColor3 = Color3.fromRGB(255, 255, 255) -- White text for better visibility
+        timeLabel.BackgroundTransparency = 1
+        -- Important: disable TextScaled so slider-controlled TextSize takes effect
+        timeLabel.TextScaled = false
+        timeLabel.TextSize = CONFIG.ESP.PlotESP.TimeTextSize
+        timeLabel.Font = Enum.Font.SourceSansBold -- Bold font for cleaner look
+        timeLabel.TextStrokeTransparency = 0 -- Enable text stroke
+        timeLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0) -- Black border
+        timeLabel.Parent = frame
+        local timeStroke = Instance.new("UIStroke", timeLabel)
+        timeStroke.Thickness = 1.5 -- Thicker border for better visibility
+        timeStroke.Color = Color3.fromRGB(0, 0, 0) -- Black border
+        timeStroke.Transparency = 0 -- No transparency for solid border
 
-        local timeLabel
-        if CONFIG.ESP.PlotESP.ShowTime then
-            timeLabel = Instance.new("TextLabel")
-            timeLabel.Size = UDim2.new(1, 0, 0.3, 0)
-            timeLabel.Position = UDim2.new(0, 0, yOffset, 0)
-            timeLabel.Text = "Time: Loading..."
-            timeLabel.TextColor3 = CONFIG.Colors.SubText
-            timeLabel.BackgroundTransparency = 1
-            timeLabel.TextScaled = true
-            timeLabel.TextSize = CONFIG.ESP.PlotESP.TimeTextSize
-            timeLabel.Font = Enum.Font.SourceSans
-            timeLabel.Parent = frame
-            local timeStroke = Instance.new("UIStroke", timeLabel)
-            timeStroke.Thickness = 0.5
-            timeStroke.Color = Color3.fromRGB(0, 0, 0)
-            timeStroke.Transparency = 0.4
-            yOffset = yOffset + 0.3
-        end
-
-        local distLabel
-        if CONFIG.ESP.PlotESP.ShowDistance then
-            distLabel = Instance.new("TextLabel")
-            distLabel.Size = UDim2.new(1, 0, 0.3, 0)
-            distLabel.Position = UDim2.new(0, 0, yOffset, 0)
-            distLabel.Text = "Distance: Calculating..."
-            distLabel.TextColor3 = CONFIG.Colors.Text
-            distLabel.BackgroundTransparency = 1
-            distLabel.TextScaled = true
-            distLabel.TextSize = 14
-            distLabel.Font = Enum.Font.SourceSans
-            distLabel.Parent = frame
-            local distStroke = Instance.new("UIStroke", distLabel)
-            distStroke.Thickness = 0.5
-            distStroke.Color = Color3.fromRGB(0, 0, 0)
-            distStroke.Transparency = 0.4
-        end
-
-        return gui, distLabel, ownerLabel, timeLabel
+        return gui, timeLabel
     end)
     if not success then
-        warn("Failed to create billboard GUI for plot: " .. plot.Name)
-        return nil, nil, nil, nil
+        warn("Failed to create plot time billboard for: " .. plot.Name)
+        return nil, nil
     end
-    return billboard, distanceLabel, ownerLabel, timeLabel
+    return billboard, timeLabel
 end
 
-local function updatePlotBillboard(plot, data)
-    if not data.billboard or not data.billboard.Adornee then
+local function updatePlotTimeBillboard(plot, data)
+    if not _G.PlotTimeESP_Enabled or not plot or not data.billboard or not data.billboard.Adornee then
         return
     end
     local success, _ = pcall(function()
-        local localPlayer = Players.LocalPlayer
-        if not localPlayer.Character or not localPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            return
-        end
-        local localRoot = localPlayer.Character.HumanoidRootPart
-        local targetPart = data.billboard.Adornee
-        if CONFIG.ESP.PlotESP.ShowDistance and data.distanceLabel then
-            local distance = (localRoot.Position - targetPart.Position).Magnitude
-            data.distanceLabel.Text = string.format("Distance: %.1f studs", distance)
-        end
-
-        if CONFIG.ESP.PlotESP.ShowOwner and data.ownerLabel then
-            local owner = getPlotOwner(plot)
-            data.ownerLabel.Text = owner and ("Owner: " .. owner) or "Owner: Unknown"
-        end
-
-        if CONFIG.ESP.PlotESP.ShowTime and data.timeLabel then
-            local remainingTime = getRemainingTime(plot)
-            data.timeLabel.Text = remainingTime and ("Time: " .. remainingTime) or "Time: N/A"
+        if data.timeLabel then
+            local timeText = getRemainingTime(plot)
+            data.timeLabel.Text = timeText or "Time: Unavailable"
         end
     end)
     if not success then
-        warn("Failed to update plot billboard for plot: " .. plot.Name)
-    end
-end
-
-local function attachHighlightToPlot(plot)
-    if not _G.PlotESP_Enabled or not plot then return end
-    local success, _ = pcall(function()
-        local oldHighlight = plot:FindFirstChildOfClass("Highlight")
-        if oldHighlight then oldHighlight:Destroy() end
-        local oldBillboard = plot:FindFirstChild("PlotESP_Billboard", true)
-        if oldBillboard then oldBillboard:Destroy() end
-
-        local highlight = Instance.new("Highlight")
-        highlight.FillTransparency = CONFIG.ESP.PlotESP.FillTransparency
-        highlight.OutlineTransparency = CONFIG.ESP.PlotESP.OutlineTransparency
-        highlight.OutlineColor = CONFIG.ESP.PlotESP.HighlightColor
-        highlight.Adornee = plot
-        highlight.Parent = plot
-
-        local billboard, distanceLabel, ownerLabel, timeLabel = createPlotBillboardGui(plot)
-        if not billboard then return end
-
-        _G.PlotESP_Data[plot] = _G.PlotESP_Data[plot] or {}
-        _G.PlotESP_Data[plot].highlight = highlight
-        _G.PlotESP_Data[plot].billboard = billboard
-        _G.PlotESP_Data[plot].distanceLabel = distanceLabel
-        _G.PlotESP_Data[plot].ownerLabel = ownerLabel
-        _G.PlotESP_Data[plot].timeLabel = timeLabel
-
-        local lastUpdate = 0
-        _G.PlotESP_Data[plot].updateConn = RunService.Heartbeat:Connect(function(deltaTime)
-            lastUpdate = lastUpdate + deltaTime
-            if lastUpdate >= CONFIG.ESP.UpdateInterval then
-                updatePlotBillboard(plot, _G.PlotESP_Data[plot])
-                lastUpdate = 0
-            end
-        end)
-    end)
-    if not success then
-        warn("Failed to attach ESP to plot: " .. plot.Name)
-    end
-end
-
-local function enablePlotESP()
-    if _G.PlotESP_Enabled then return end
-    local success, _ = pcall(function()
-        local plotsFolder = workspace:FindFirstChild("Plots")
-        if not plotsFolder then return end
-
-        _G.PlotESP_Enabled = true
-        for _, plot in ipairs(plotsFolder:GetChildren()) do
-            if plot:IsA("Model") then
-                local plotConn = plot.AncestryChanged:Connect(function()
-                    if not plot.Parent then
-                        if _G.PlotESP_Data[plot] then
-                            if _G.PlotESP_Data[plot].updateConn then pcall(function() _G.PlotESP_Data[plot].updateConn:Disconnect() end) end
-                            if _G.PlotESP_Data[plot].highlight then pcall(function() _G.PlotESP_Data[plot].highlight:Destroy() end) end
-                            if _G.PlotESP_Data[plot].billboard then pcall(function() _G.PlotESP_Data[plot].billboard:Destroy() end) end
-                            _G.PlotESP_Data[plot] = nil
-                        end
-                    end
-                end)
-                _G.PlotESP_Data[plot] = _G.PlotESP_Data[plot] or {}
-                _G.PlotESP_Data[plot].plotConn = plotConn
-                attachHighlightToPlot(plot)
-            end
-        end
-        _G.PlotESP_Data.plotsConn = plotsFolder.ChildAdded:Connect(function(plot)
-            if plot:IsA("Model") then
-                local plotConn = plot.AncestryChanged:Connect(function()
-                    if not plot.Parent then
-                        if _G.PlotESP_Data[plot] then
-                            if _G.PlotESP_Data[plot].updateConn then pcall(function() _G.PlotESP_Data[plot].updateConn:Disconnect() end) end
-                            if _G.PlotESP_Data[plot].highlight then pcall(function() _G.PlotESP_Data[plot].highlight:Destroy() end) end
-                            if _G.PlotESP_Data[plot].billboard then pcall(function() _G.PlotESP_Data[plot].billboard:Destroy() end) end
-                            _G.PlotESP_Data[plot] = nil
-                        end
-                    end
-                end)
-                _G.PlotESP_Data[plot] = _G.PlotESP_Data[plot] or {}
-                _G.PlotESP_Data[plot].plotConn = plotConn
-                task.wait(1) -- Wait for plot to fully load
-                attachHighlightToPlot(plot)
-            end
-        end)
-        _G.PlotESP_Data.plotsRemoveConn = plotsFolder.ChildRemoved:Connect(function(plot)
-            if _G.PlotESP_Data[plot] then
-                if _G.PlotESP_Data[plot].plotConn then pcall(function() _G.PlotESP_Data[plot].plotConn:Disconnect() end) end
-                if _G.PlotESP_Data[plot].updateConn then pcall(function() _G.PlotESP_Data[plot].updateConn:Disconnect() end) end
-                if _G.PlotESP_Data[plot].highlight then pcall(function() _G.PlotESP_Data[plot].highlight:Destroy() end) end
-                if _G.PlotESP_Data[plot].billboard then pcall(function() _G.PlotESP_Data[plot].billboard:Destroy() end) end
-                _G.PlotESP_Data[plot] = nil
-            end
-        end)
-    end)
-    if not success then
-        warn("Failed to enable Plot ESP")
-        Plot_G.ESP_Enabled = false
-    end
-end
-
-local function disablePlotESP()
-    if not _G.PlotESP_Enabled then return end
-    local success, _ = pcall(function()
-        _G.PlotESP_Enabled = false
-        if _G.PlotESP_Data.plotsConn then
-            pcall(function() _G.PlotESP_Data.plotsConn:Disconnect() end)
-            _G.PlotESP_Data.plotsConn = nil
-        end
-        if _G.PlotESP_Data.plotsRemoveConn then
-            pcall(function() _G.PlotESP_Data.plotsRemoveConn:Disconnect() end)
-            _G.PlotESP_Data.plotsRemoveConn = nil
-        end
-        for plot, data in pairs(_G.PlotESP_Data) do
-            if typeof(plot) == "Instance" then
-                if data.plotConn then pcall(function() data.plotConn:Disconnect() end) end
-                if data.updateConn then pcall(function() data.updateConn:Disconnect() end) end
-                if data.highlight then pcall(function() data.highlight:Destroy() end) end
-                if data.billboard then pcall(function() data.billboard:Destroy() end) end
-                _G.PlotESP_Data[plot] = nil
-            end
-        end
-    end)
-    if not success then
-        warn("Failed to disable Plot ESP")
+        warn("Failed to update plot time billboard for: " .. plot.Name)
     end
 end
 
@@ -3130,24 +4497,37 @@ local function enablePlotTimeESP()
     local success, _ = pcall(function()
         local plotsFolder = workspace:FindFirstChild("Plots")
         if not plotsFolder then
-            warn("Plots folder not found")
+            warn("Plots folder not found in workspace")
             return
         end
 
         _G.PlotTimeESP_Enabled = true
-        _G.PlotTimeESP_Data = {} -- Clear existing data to prevent duplicates
+        _G.PlotTimeESP_Data = {} -- Clear existing data
 
-        for _, plot in pairs(plotsFolder:GetChildren()) do
-            if plot:IsA("Model") and plot:FindFirstChild("Spawn") then
+        for _, plot in ipairs(plotsFolder:GetChildren()) do
+            if plot:IsA("Model") then
+                local plotConn = plot.AncestryChanged:Connect(function()
+                    if not plot.Parent then
+                        if _G.PlotTimeESP_Data[plot] then
+                            if _G.PlotTimeESP_Data[plot].updateConn then
+                                pcall(function() _G.PlotTimeESP_Data[plot].updateConn:Disconnect() end)
+                            end
+                            if _G.PlotTimeESP_Data[plot].billboard then
+                                pcall(function() _G.PlotTimeESP_Data[plot].billboard:Destroy() end)
+                            end
+                            _G.PlotTimeESP_Data[plot] = nil
+                        end
+                    end
+                end)
+                _G.PlotTimeESP_Data[plot] = _G.PlotTimeESP_Data[plot] or {}
+                _G.PlotTimeESP_Data[plot].plotConn = plotConn
+
                 local billboard, timeLabel = createPlotTimeBillboard(plot)
                 if billboard and timeLabel then
-                    _G.PlotTimeESP_Data[plot] = {
-                        billboard = billboard,
-                        timeLabel = timeLabel
-                    }
+                    _G.PlotTimeESP_Data[plot].billboard = billboard
+                    _G.PlotTimeESP_Data[plot].timeLabel = timeLabel
                     local lastUpdate = 0
                     _G.PlotTimeESP_Data[plot].updateConn = RunService.Heartbeat:Connect(function(deltaTime)
-                        if not _G.PlotTimeESP_Enabled or not _G.PlotTimeESP_Data[plot] then return end
                         lastUpdate = lastUpdate + deltaTime
                         if lastUpdate >= CONFIG.ESP.UpdateInterval then
                             updatePlotTimeBillboard(plot, _G.PlotTimeESP_Data[plot])
@@ -3158,53 +4538,45 @@ local function enablePlotTimeESP()
             end
         end
 
-        -- Handle new plots
         _G.PlotTimeESP_Data.plotsConn = plotsFolder.ChildAdded:Connect(function(plot)
             if plot:IsA("Model") then
-                task.wait(1) -- Wait for plot to load
-                if plot:FindFirstChild("Spawn") then
-                    local billboard, timeLabel = createPlotTimeBillboard(plot)
-                    if billboard and timeLabel then
-                        _G.PlotTimeESP_Data[plot] = {
-                            billboard = billboard,
-                            timeLabel = timeLabel
-                        }
-                        local lastUpdate = 0
-                        _G.PlotTimeESP_Data[plot].updateConn = RunService.Heartbeat:Connect(function(deltaTime)
-                            if not _G.PlotTimeESP_Enabled or not _G.PlotTimeESP_Data[plot] then return end
-                            lastUpdate = lastUpdate + deltaTime
-                            if lastUpdate >= CONFIG.ESP.UpdateInterval then
-                                updatePlotTimeBillboard(plot, _G.PlotTimeESP_Data[plot])
-                                lastUpdate = 0
+                local plotConn = plot.AncestryChanged:Connect(function()
+                    if not plot.Parent then
+                        if _G.PlotTimeESP_Data[plot] then
+                            if _G.PlotTimeESP_Data[plot].updateConn then
+                                pcall(function() _G.PlotTimeESP_Data[plot].updateConn:Disconnect() end)
                             end
-                        end)
+                            if _G.PlotTimeESP_Data[plot].billboard then
+                                pcall(function() _G.PlotTimeESP_Data[plot].billboard:Destroy() end)
+                            end
+                            _G.PlotTimeESP_Data[plot] = nil
+                        end
                     end
-                end
-            end
-        end)
-        
-        -- Handle player events for plot time updates
-        _G.PlotTimeESP_Data.playerAddedConn = Players.PlayerAdded:Connect(function(plr)
-            -- Update all plot time billboards when a player joins
-            for plot, data in pairs(_G.PlotTimeESP_Data) do
-                if typeof(plot) == "Instance" and data.billboard and data.timeLabel then
-                    updatePlotTimeBillboard(plot, data)
-                end
-            end
-        end)
-        
-        _G.PlotTimeESP_Data.playerRemovingConn = Players.PlayerRemoving:Connect(function(plr)
-            -- Update all plot time billboards when a player leaves
-            for plot, data in pairs(_G.PlotTimeESP_Data) do
-                if typeof(plot) == "Instance" and data.billboard and data.timeLabel then
-                    updatePlotTimeBillboard(plot, data)
+                end)
+                _G.PlotTimeESP_Data[plot] = _G.PlotTimeESP_Data[plot] or {}
+                _G.PlotTimeESP_Data[plot].plotConn = plotConn
+                task.wait(1) -- Wait for plot to fully load
+                local billboard, timeLabel = createPlotTimeBillboard(plot)
+                if billboard and timeLabel then
+                    _G.PlotTimeESP_Data[plot].billboard = billboard
+                    _G.PlotTimeESP_Data[plot].timeLabel = timeLabel
+                    local lastUpdate = 0
+                    _G.PlotTimeESP_Data[plot].updateConn = RunService.Heartbeat:Connect(function(deltaTime)
+                        lastUpdate = lastUpdate + deltaTime
+                        if lastUpdate >= CONFIG.ESP.UpdateInterval then
+                            updatePlotTimeBillboard(plot, _G.PlotTimeESP_Data[plot])
+                            lastUpdate = 0
+                        end
+                    end)
                 end
             end
         end)
 
-        -- Handle plot removal
         _G.PlotTimeESP_Data.plotsRemoveConn = plotsFolder.ChildRemoved:Connect(function(plot)
             if _G.PlotTimeESP_Data[plot] then
+                if _G.PlotTimeESP_Data[plot].plotConn then
+                    pcall(function() _G.PlotTimeESP_Data[plot].plotConn:Disconnect() end)
+                end
                 if _G.PlotTimeESP_Data[plot].updateConn then
                     pcall(function() _G.PlotTimeESP_Data[plot].updateConn:Disconnect() end)
                 end
@@ -3221,759 +4593,1488 @@ local function enablePlotTimeESP()
     end
 end
 
---=========================================================
--- Server Hop System
---=========================================================
-local isServerHopActive = false
-local serverHopThread = nil
-
-local function getServerList()
-    local success, servers = pcall(function()
-        local placeId = game.PlaceId
-        local url = "https://games.roblox.com/v1/games/" .. placeId .. "/servers/Public?sortOrder=Asc&limit=100"
-        local response = _G.safeHttpGet(url)
-        if not response then
-            warn("❌ Failed to fetch server list")
-            return {}
-        end
-        local parsed = HttpService:JSONDecode(response)
-        local result = {}
-        if type(parsed) == "table" and type(parsed.data) == "table" then
-            for _, server in ipairs(parsed.data) do
-                if type(server) == "table" and server.playing and server.maxPlayers and server.id and server.playing < server.maxPlayers and server.id ~= game.JobId then
-                    table.insert(result, server.id)
-                end
-            end
-        end
-        return result
-    end)
-    if not success then
-        warn("Failed to get server list")
-        return {}
-    end
-    return servers
-end
-
-local function attemptServerHop()
+local function refreshPlotTimeESP()
+    if not _G.PlotTimeESP_Enabled then return end
     local success, _ = pcall(function()
-        local serverList = getServerList()
-        if #serverList > 0 then
-            local target = serverList[math.random(1, #serverList)]
-            game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, target, player)
-        else
-            warn("No available servers found")
-        end
-    end)
-    if not success then
-        warn("Server hop attempt failed")
-    end
-end
-
-local function toggleServerHop(active)
-    local success, _ = pcall(function()
-        isServerHopActive = active
-        if active then
-            if not serverHopThread then
-                serverHopThread = task.spawn(function()
-                    while isServerHopActive do
-                        attemptServerHop()
-                        task.wait(6)
-                    end
-                    serverHopThread = nil
-                end)
-            end
-        else
-            isServerHopActive = false
-        end
-    end)
-    if not success then
-        warn("Failed to toggle server hop")
-    end
-end
-
---=========================================================
--- Jump Power Control
---=========================================================
-local function setupJumpPowerControl(parent)
-    local jumpData = {
-        defaultJumpPower = 50,
-        isActive = false
-    }
-
-    local jumpSwitch = createSwitch(parent, "Jump Bypass", _G.SavedToggleStates and _G.SavedToggleStates.Jump or false, function(on)
-        local success, _ = pcall(function()
-            jumpData.isActive = on
-            if humanoid then
-                humanoid.UseJumpPower = true
-                humanoid.JumpPower = on and CONFIG.Movement.JumpPower or jumpData.defaultJumpPower
-            end
-            if on then
-                -- Auto-create side toggle when enabled
-                _G.createCircularToggleUI("Jump", function() return jumpSwitch.get() end, function(state) jumpSwitch.set(state) end)
-            else
-                -- Remove side toggle when disabled
-                local existingToggle = _G.circularToggleGui:FindFirstChild("JumpToggleUI")
-                if existingToggle then
-                    _G.OpenCircularToggles["Jump"] = nil
-                    existingToggle:Destroy()
-                    _G.saveSettings()
+        -- Clear existing data
+        for plot, data in pairs(_G.PlotTimeESP_Data) do
+            if typeof(plot) == "Instance" then
+                if data.plotConn then
+                    pcall(function() data.plotConn:Disconnect() end)
                 end
-            end
-        end)
-        if not success then
-            warn("Failed to toggle jump power")
-        end
-    end)
-
-    return jumpData.isActive, jumpSwitch
-end
-
---=========================================================
--- Speed Boost Control
---=========================================================
-local function setupSpeedControl(parent)
-    local speedData = {
-        enabled = false,
-        connections = {},
-        joystickDelta = Vector2.new(0, 0),
-        touchId = nil
-    }
-
-    local function enableSpeed()
-        local success, _ = pcall(function()
-            if speedData.enabled then return end
-            humanoid, humanoidRootPart = character and character:FindFirstChildOfClass("Humanoid"), character and character:FindFirstChild("HumanoidRootPart")
-            if not humanoid or not humanoidRootPart then return end
-            speedData.enabled = true
-
-            if UserInputService.TouchEnabled then
-                speedData.connections.touchBegan = UserInputService.TouchStarted:Connect(function(input, gameProcessed)
-                    if gameProcessed or speedData.touchId then return end
-                    if input.UserInputType == Enum.UserInputType.Touch then
-                        speedData.touchId = input.UserInputId
-                        speedData.joystickDelta = Vector2.new(0, 0)
-                    end
-                end)
-
-                speedData.connections.touchMoved = UserInputService.TouchMoved:Connect(function(input, gameProcessed)
-                    if gameProcessed or input.UserInputId ~= speedData.touchId then return end
-                    local touchPos = input.Position
-                    local screenSize = workspace.CurrentCamera.ViewportSize
-                    local normalizedPos = Vector2.new(
-                        (touchPos.X / screenSize.X - 0.25) * 4,
-                        (touchPos.Y / screenSize.Y - 0.5) * 2
-                    )
-                    speedData.joystickDelta = Vector2.new(
-                        math.clamp(normalizedPos.X, -1, 1),
-                        math.clamp(normalizedPos.Y, -1, 1)
-                    )
-                end)
-
-                speedData.connections.touchEnded = UserInputService.TouchEnded:Connect(function(input, gameProcessed)
-                    if gameProcessed or input.UserInputId ~= speedData.touchId then return end
-                    speedData.touchId = nil
-                    speedData.joystickDelta = Vector2.new(0, 0)
-                end)
-            end
-
-            speedData.connections.move = RunService.Heartbeat:Connect(function()
-                if not speedData.enabled or not humanoid or not humanoidRootPart or humanoidRootPart.Parent ~= character then return end
-
-                local moveVector = Vector3.new(0, 0, 0)
-                local camCF = workspace.CurrentCamera.CFrame
-
-                if UserInputService.TouchEnabled and speedData.joystickDelta.Magnitude > 0.15 then
-                    moveVector = camCF:VectorToWorldSpace(Vector3.new(speedData.joystickDelta.X, 0, -speedData.joystickDelta.Y))
-                    moveVector = moveVector.Unit * CONFIG.Movement.Speed
-                else
-                    local moveX = (UserInputService:IsKeyDown(Enum.KeyCode.D) and 1 or 0) - (UserInputService:IsKeyDown(Enum.KeyCode.A) and 1 or 0)
-                    local moveZ = (UserInputService:IsKeyDown(Enum.KeyCode.W) and 1 or 0) - (UserInputService:IsKeyDown(Enum.KeyCode.S) and 1 or 0)
-                    if moveX ~= 0 or moveZ ~= 0 then
-                        moveVector = (camCF.RightVector * moveX + camCF.LookVector * moveZ).Unit * CONFIG.Movement.Speed
-                    end
+                if data.updateConn then
+                    pcall(function() data.updateConn:Disconnect() end)
                 end
-
-                local currentVelocity = humanoidRootPart.AssemblyLinearVelocity
-                local newVelocity = Vector3.new(
-                    moveVector.X ~= 0 and moveVector.X or currentVelocity.X,
-                    currentVelocity.Y,
-                    moveVector.Z ~= 0 and moveVector.Z or currentVelocity.Z
-                )
-
-                local flatMag = Vector3.new(newVelocity.X, 0, newVelocity.Z).Magnitude
-                if flatMag > CONFIG.Movement.MaxSpeed then
-                    local ratio = CONFIG.Movement.MaxSpeed / flatMag
-                    newVelocity = Vector3.new(newVelocity.X * ratio, newVelocity.Y, newVelocity.Z * ratio)
+                if data.billboard then
+                    pcall(function() data.billboard:Destroy() end)
                 end
-
-                humanoidRootPart.AssemblyLinearVelocity = newVelocity
-            end)
-        end)
-        if not success then
-            warn("Failed to enable speed boost")
-            speedData.enabled = false
-        end
-    end
-
-    local function disableSpeed()
-        local success, _ = pcall(function()
-            if not speedData.enabled then return end
-            speedData.enabled = false
-            for _, conn in pairs(speedData.connections) do
-                pcall(function() conn:Disconnect() end)
-            end
-            speedData.connections = {}
-            speedData.touchId = nil
-            speedData.joystickDelta = Vector2.new(0, 0)
-            if humanoidRootPart then
-                humanoidRootPart.AssemblyLinearVelocity = Vector3.new(0, humanoidRootPart.AssemblyLinearVelocity.Y, 0)
-            end
-        end)
-        if not success then
-            warn("Failed to disable speed boost")
-        end
-    end
-
-    local speedSwitch = createSwitch(parent, "Speed Boost", _G.SavedToggleStates and _G.SavedToggleStates.Speed or false, function(on)
-        if on then
-            enableSpeed()
-            -- Auto-create side toggle when enabled
-            _G.createCircularToggleUI("Speed", function() return speedSwitch.get() end, function(state) speedSwitch.set(state) end)
-        else
-            disableSpeed()
-            -- Remove side toggle when disabled
-            local existingToggle = _G.circularToggleGui:FindFirstChild("SpeedToggleUI")
-            if existingToggle then
-                _G.OpenCircularToggles["Speed"] = nil
-                existingToggle:Destroy()
-                _G.saveSettings()
+                _G.PlotTimeESP_Data[plot] = nil
             end
         end
-    end)
-
-    return speedData.enabled, speedSwitch
-end
-
--- Setup Movement Controls (moved here after function definitions)
-local _, jumpSwitch = setupJumpPowerControl(_G.movementSection)
-local _, speedSwitch = setupSpeedControl(_G.movementSection)
-
---=========================================================
--- Unhittable Control
---=========================================================
-local unhittableSwitch -- Global to access in CharacterAdded
-
-local function setupUnhittableControl(parent)
-    local defaultSize = Vector3.new(2, 2, 1)
-    local isUnhittableActive = false
-    local unhittableThread = nil
-
-    unhittableSwitch = createSwitch(parent, "Height Bypass", false, function(on)
-        local success, _ = pcall(function()
-            isUnhittableActive = on
-            if not humanoidRootPart then return end
-            if on then
-                if not unhittableThread then
-                    unhittableThread = task.spawn(function()
-                        while isUnhittableActive do
-                            if humanoidRootPart then
-                                humanoidRootPart.Size = Vector3.new(
-                                    CONFIG.Movement.Unhittable.IntermediateSize.X,
-                                    CONFIG.Movement.Unhittable.IntermediateSize.Y,
-                                    CONFIG.Movement.Unhittable.IntermediateSize.Z
-                                )
-                                task.wait(0.2)
-                                if not isUnhittableActive then break end
-                                humanoidRootPart.Size = Vector3.new(
-                                    CONFIG.Movement.Unhittable.TallSize.X,
-                                    CONFIG.Movement.Unhittable.TallSize.Y,
-                                    CONFIG.Movement.Unhittable.TallSize.Z
-                                )
-                                task.wait(2.1)
-                                if not isUnhittableActive then break end
-                                humanoidRootPart.Size = defaultSize
-                                task.wait(1.5)
-                            else
-                                task.wait(0.1)
+        
+        -- Recreate for all existing plots
+        local plotsFolder = workspace:FindFirstChild("Plots")
+        if plotsFolder then
+            for _, plot in ipairs(plotsFolder:GetChildren()) do
+                if plot:IsA("Model") and plot:FindFirstChild("Spawn") then
+                    local plotConn = plot.AncestryChanged:Connect(function()
+                        if not plot.Parent then
+                            if _G.PlotTimeESP_Data[plot] then
+                                if _G.PlotTimeESP_Data[plot].updateConn then
+                                    pcall(function() _G.PlotTimeESP_Data[plot].updateConn:Disconnect() end)
+                                end
+                                if _G.PlotTimeESP_Data[plot].billboard then
+                                    pcall(function() _G.PlotTimeESP_Data[plot].billboard:Destroy() end)
+                                end
+                                _G.PlotTimeESP_Data[plot] = nil
                             end
                         end
-                        if humanoidRootPart then
-                            humanoidRootPart.Size = defaultSize
-                        end
-                        unhittableThread = nil
                     end)
-                end
-            else
-                if humanoidRootPart then
-                    humanoidRootPart.Size = defaultSize
-                end
-                if unhittableThread then
-                    task.cancel(unhittableThread)
-                    unhittableThread = nil
-                end
-            end
-        end)
-        if not success then
-            warn("Failed to toggle height bypass")
-        end
-    end)
+                    _G.PlotTimeESP_Data[plot] = _G.PlotTimeESP_Data[plot] or {}
+                    _G.PlotTimeESP_Data[plot].plotConn = plotConn
 
-    return isUnhittableActive, unhittableSwitch
-end
-
---=========================================================
--- Resize Control
---=========================================================
-local resizeSwitch -- Global to access in CharacterAdded
-
-local function setupResizeControl(parent)
-    local defaultSize = Vector3.new(2, 2, 1)
-    local isResizeActive = false
-
-    resizeSwitch = createSwitch(parent, "Tall like Ken", false, function(on)
-        local success, _ = pcall(function()
-            isResizeActive = on
-            if humanoidRootPart then
-                humanoidRootPart.Size = on and Vector3.new(
-                    CONFIG.Movement.Resize.TargetSize.X,
-                    CONFIG.Movement.Resize.TargetSize.Y,
-                    CONFIG.Movement.Resize.TargetSize.Z
-                ) or defaultSize
-            end
-        end)
-        if not success then
-            warn("Failed to toggle tall mode")
-        end
-    end)
-
-    return isResizeActive, resizeSwitch
-end
-
---=========================================================
--- Fling Control (Fixed Desync Logic)
---=========================================================
-local flingSwitch -- Global to access in CharacterAdded
-
-local function setupFlingControl(parent)
-    local isFlingActive = false
-    local desyncState = {}
-    local flingConnection = nil
-    local oldIndex = nil
-
-    local function RandomNumberRange(a)
-        return math.random(-a * 100, a * 100) / 100
-    end
-
-    local function enableFling()
-        local success, err = pcall(function()
-            if isFlingActive then return end
-            -- Ensure character and components exist
-            if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") or not player.Character:FindFirstChild("Humanoid") or player.Character.Humanoid.Health <= 0 then
-                warn("Cannot enable fling: Character not ready")
-                return
-            end
-            isFlingActive = true
-
-            -- Hook __index to spoof CFrame
-            oldIndex = hookmetamethod(game, "__index", newcclosure(function(self, key)
-                if isFlingActive and not checkcaller() and player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 then
-                    if key == "CFrame" then
-                        if self == player.Character.HumanoidRootPart then
-                            return desyncState[1] or CFrame.new()
-                        elseif self == player.Character.Head then
-                            return desyncState[1] and (desyncState[1] + Vector3.new(0, player.Character.HumanoidRootPart.Size.Y / 2 + 0.5, 0)) or CFrame.new()
-                        end
+                    local billboard, timeLabel = createPlotTimeBillboard(plot)
+                    if billboard and timeLabel then
+                        _G.PlotTimeESP_Data[plot].billboard = billboard
+                        _G.PlotTimeESP_Data[plot].timeLabel = timeLabel
+                        local lastUpdate = 0
+                        _G.PlotTimeESP_Data[plot].updateConn = RunService.Heartbeat:Connect(function(deltaTime)
+                            lastUpdate = lastUpdate + deltaTime
+                            if lastUpdate >= CONFIG.ESP.UpdateInterval then
+                                updatePlotTimeBillboard(plot, _G.PlotTimeESP_Data[plot])
+                                lastUpdate = 0
+                            end
+                        end)
                     end
                 end
-                return oldIndex(self, key)
-            end))
+            end
+        end
+    end)
+    if not success then
+        warn("Failed to refresh Plot Time ESP")
+    end
+end
 
-            flingConnection = RunService.Heartbeat:Connect(function()
-                if isFlingActive and player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 then
-                    local hrp = player.Character.HumanoidRootPart
-                    -- Store original state
-                    desyncState[1] = hrp.CFrame
-                    desyncState[2] = hrp.AssemblyLinearVelocity
-
-                    -- Spoof CFrame and velocity
-                    local spoofCFrame = desyncState[1] * CFrame.new(Vector3.new(0, 0, 0))
-                    spoofCFrame = spoofCFrame * CFrame.Angles(math.rad(RandomNumberRange(180)), math.rad(RandomNumberRange(180)), math.rad(RandomNumberRange(180)))
-                    hrp.CFrame = spoofCFrame
-                    hrp.AssemblyLinearVelocity = Vector3.new(1, 0, 0) * 5000 -- Reduced velocity to prevent physics crashes
-
-                    -- Wait for next frame
-                    RunService.RenderStepped:Wait()
-
-                    -- Restore original state only if character is still valid
-                    if player.Character and hrp.Parent == player.Character then
-                        hrp.CFrame = desyncState[1]
-                        hrp.AssemblyLinearVelocity = desyncState[2]
-                    end
+local function disablePlotTimeESP()
+    if not _G.PlotTimeESP_Enabled then return end
+    local success, _ = pcall(function()
+        _G.PlotTimeESP_Enabled = false
+        if _G.PlotTimeESP_Data.plotsConn then
+            pcall(function() _G.PlotTimeESP_Data.plotsConn:Disconnect() end)
+            _G.PlotTimeESP_Data.plotsConn = nil
+        end
+        if _G.PlotTimeESP_Data.plotsRemoveConn then
+            pcall(function() _G.PlotTimeESP_Data.plotsRemoveConn:Disconnect() end)
+            _G.PlotTimeESP_Data.plotsRemoveConn = nil
+        end
+        if _G.PlotTimeESP_Data.playerAddedConn then
+            pcall(function() _G.PlotTimeESP_Data.playerAddedConn:Disconnect() end)
+            _G.PlotTimeESP_Data.playerAddedConn = nil
+        end
+        if _G.PlotTimeESP_Data.playerRemovingConn then
+            pcall(function() _G.PlotTimeESP_Data.playerRemovingConn:Disconnect() end)
+            _G.PlotTimeESP_Data.playerRemovingConn = nil
+        end
+        for plot, data in pairs(_G.PlotTimeESP_Data) do
+            if typeof(plot) == "Instance" then
+                if data.plotConn then
+                    pcall(function() data.plotConn:Disconnect() end)
                 end
-            end)
-        end)
-        if not success then
-            warn("Failed to enable fling: " .. tostring(err))
-            isFlingActive = false
-            flingSwitch.set(false) -- Reset UI switch if enabling fails
+                if data.updateConn then
+                    pcall(function() data.updateConn:Disconnect() end)
+                end
+                if data.billboard then
+                    pcall(function() data.billboard:Destroy() end)
+                end
+                _G.PlotTimeESP_Data[plot] = nil
+            end
+        end
+        _G.PlotTimeESP_Data = {}
+    end)
+    if not success then
+        warn("Failed to disable Plot Time ESP")
+    end
+end
+-- Enable plot time ESP by default (with error handling)
+pcall(function()
+enablePlotTimeESP()
+end)
+
+--=========================================================
+-- Brainrot ESP System
+--=========================================================
+_G.brainrotESPEnabled = false
+_G.brainrotRefreshLoop = nil
+_G.brainrotLastHighlighted = nil
+
+-- Converts "$100M/s" style text into numbers
+local function convertToNumber(text)
+    text = text:gsub("%$", ""):gsub("/s", "") -- Remove $ and /s
+    local multiplier = 1
+
+    if text:find("K") then
+        multiplier = 1e3
+        text = text:gsub("K", "")
+    elseif text:find("M") then
+        multiplier = 1e6
+        text = text:gsub("M", "")
+    elseif text:find("B") then
+        multiplier = 1e9
+        text = text:gsub("B", "")
+    elseif text:find("T") then
+        multiplier = 1e12
+        text = text:gsub("T", "")
+    end
+
+    local num = tonumber(text)
+    return num and num * multiplier or 0
+end
+
+-- Reset a BillboardGui back to default
+local function resetBillboard(billboard)
+    if billboard then
+        billboard.MaxDistance = 60
+        billboard.Size = UDim2.new(15, 0, 5, 0)
+        billboard.SizeOffset = Vector2.new(0, 0)
+    end
+end
+
+-- Check if any ancestor is named "Base"
+local function hasBaseParent(obj)
+    local parent = obj.Parent
+    while parent do
+        if parent.Name == "Base" then
+            return true
+        end
+        parent = parent.Parent
+    end
+    return false
+end
+
+-- Update ESP logic
+local function updateBrainrotESP()
+    local highestBillboard = nil
+    local highestValue = 0
+
+    -- Look through workspace for all AnimalOverhead BillboardGuis
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if obj:IsA("BillboardGui") and obj.Name == "AnimalOverhead" and hasBaseParent(obj) then
+            local genLabel = obj:FindFirstChild("Generation")
+            if genLabel and genLabel:IsA("TextLabel") then
+                local value = convertToNumber(genLabel.Text)
+                if value > highestValue then
+                    highestValue = value
+                    highestBillboard = obj
+                end
+            end
         end
     end
 
-    local function disableFling()
-        local success, err = pcall(function()
-            if not isFlingActive then return end
-            isFlingActive = false
-            if flingConnection then
-                flingConnection:Disconnect()
-                flingConnection = nil
-            end
-            if oldIndex then
-                -- Restore original __index
-                hookmetamethod(game, "__index", function(self, key)
-                    return oldIndex(self, key)
-                end)
-                oldIndex = nil
-            end
-            desyncState = {}
-            -- Ensure character state is reset
-            if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                player.Character.HumanoidRootPart.AssemblyLinearVelocity = Vector3.new(0, player.Character.HumanoidRootPart.AssemblyLinearVelocity.Y, 0)
-            end
-        end)
-        if not success then
-            warn("Failed to disable fling: " .. tostring(err))
-        end
+    -- Reset previous highlighted billboard if changed
+    if _G.brainrotLastHighlighted and _G.brainrotLastHighlighted ~= highestBillboard then
+        resetBillboard(_G.brainrotLastHighlighted)
     end
 
-    flingSwitch = createSwitch(parent, "Fling (patched)", false, function(on)
-        if on then
-            enableFling()
+    -- Highlight the new highest billboard
+    if highestBillboard then
+        highestBillboard.MaxDistance = 100000
+        highestBillboard.Size = UDim2.new(40, 0, 50, 0)
+        highestBillboard.SizeOffset = Vector2.new(0.4, 1)
+        _G.brainrotLastHighlighted = highestBillboard
+    else
+        _G.brainrotLastHighlighted = nil
+    end
+end
+
+-- Enable Brainrot ESP
+local function enableBrainrotESP()
+    if _G.brainrotRefreshLoop then _G.brainrotRefreshLoop:Disconnect() end
+
+    -- Run immediately when toggled on
+    updateBrainrotESP()
+
+    -- Then refresh every 2 seconds
+    local lastRefresh = tick()
+    _G.brainrotRefreshLoop = RunService.Heartbeat:Connect(function()
+        if tick() - lastRefresh >= 2 then
+            updateBrainrotESP()
+            lastRefresh = tick()
+        end
+    end)
+end
+
+-- Disable Brainrot ESP
+local function disableBrainrotESP()
+    if _G.brainrotRefreshLoop then
+        _G.brainrotRefreshLoop:Disconnect()
+        _G.brainrotRefreshLoop = nil
+    end
+
+    -- Reset last highlighted to default
+    if _G.brainrotLastHighlighted then
+        resetBillboard(_G.brainrotLastHighlighted)
+        _G.brainrotLastHighlighted = nil
+    end
+end
+
+-- Mobile Desync Functions (moved here before toggles section)
+local function enableMobileDesync()
+    pcall(function()
+        local a = game:GetService("Players")
+        local b = game:GetService("ReplicatedStorage")
+        local c = a.LocalPlayer
+        local d = c:WaitForChild("Backpack")
+
+        local f = b:WaitForChild("Packages"):WaitForChild("Net")
+        local g = f:WaitForChild("RE/UseItem")
+        local h = f:WaitForChild("RE/QuantumCloner/OnTeleport")
+
+        local function executeAntiHit()
+            local s = c.Character or c.CharacterAdded:Wait()
+            local t = d:FindFirstChild("Quantum Cloner") or s:FindFirstChild("Quantum Cloner")
+            if t and d:FindFirstChild(t.Name) then
+                c.Character.Humanoid:EquipTool(t)
+            end
+            setfflag("WorldStepMax", -2147483648)
+            task.wait(0.2)
+            g:FireServer()
+            task.wait(0.3)
+            h:FireServer()
+            
+            -- Set desync flags right after clone execution
+            setfflag("S2PhysicsSenderRate", "-100")
+            setfflag("SimBlockLargeLocalToolWeldManipulationsThreshold", "-1")
+            setfflag("MaxMissedWorldStepsRemembered", "0")
+            setfflag("DebugSimPrimalStiffnessMax", "0")
+            setfflag("DebugSimPrimalStiffnessMin", "0")
+            setfflag("ReplicatorAnimationTrackLimitPerAnimator", "-1")
+            setfflag("PhysicsSkipNonRealTimeHumanoidForceCalc2", "True")
+            
+            task.wait(0.7)
+            setfflag("WorldStepMax", -1)
+        end
+
+        -- Execute desync immediately when enabled
+        executeAntiHit()
+        print("✅ Mobile Desync activated!")
+    end)
+end
+
+local function disableMobileDesync()
+    pcall(function()
+        -- Reset desync flags to defaults
+        setfflag("S2PhysicsSenderRate", "60")
+        setfflag("SimBlockLargeLocalToolWeldManipulationsThreshold", "100")
+        setfflag("MaxMissedWorldStepsRemembered", "1000")
+        setfflag("DebugSimPrimalStiffnessMax", "100")
+        setfflag("DebugSimPrimalStiffnessMin", "100")
+        setfflag("ReplicatorAnimationTrackLimitPerAnimator", "10")
+        setfflag("PhysicsSkipNonRealTimeHumanoidForceCalc2", "False")
+        setfflag("WorldStepMax", -1)
+        print("❌ Mobile Desync disabled - all flags reset!")
+    end)
+end
+
+-- Create Brainrot ESP toggle in Toggles section (moved here after function definitions)
+createButton(_G.togglesSection, "تبديل ESP البراينروت", function()
+    createCircularToggleUI("Brainrot ESP", function() return CONFIG.ESP.BrainrotESP.Enabled end, function(state)
+        CONFIG.ESP.BrainrotESP.Enabled = state
+        _G.saveSettings()
+        if state then
+            enableBrainrotESP()
         else
-            disableFling()
+            disableBrainrotESP()
         end
     end)
-
-    return isFlingActive, flingSwitch
-end
-
---=========================================================
--- UI Sections Setup
-
--- ══════════════════════════════════════════════════════
--- قسم الرئيسية
--- ══════════════════════════════════════════════════════
-createSectionHeader(_G.homeSection, "🏠  مرحباً بك في كن هاب × AXL")
-
-local _welc = Instance.new("TextLabel", _G.homeSection)
-_welc.Size = UDim2.new(1,0,0,70)
-_welc.BackgroundColor3 = C.GOLD3
-Instance.new("UICorner", _welc).CornerRadius = UDim.new(0,10)
-Instance.new("UIStroke", _welc).Color = C.GOLD2
-_welc.Text = "⭐  كن هاب v1.67 × AXL PREMIUM\nجميع الميزات مدموجة | واجهة عربية كاملة\nأسود وذهبي | للديسكورد: discord.gg/MxtDGmvkCd"
-_welc.Font = Enum.Font.GothamMedium ; _welc.TextSize = 11
-_welc.TextColor3 = C.GOLD ; _welc.TextWrapped = true
-
-createSectionHeader(_G.homeSection, "📊  معلومات اللاعب")
-local _infoLabel = Instance.new("TextLabel", _G.homeSection)
-_infoLabel.Size = UDim2.new(1,0,0,42)
-_infoLabel.BackgroundColor3 = C.ROW
-Instance.new("UICorner", _infoLabel).CornerRadius = UDim.new(0,10)
-_infoLabel.BackgroundTransparency = 0
-_infoLabel.Text = "👤  " .. (player.Name or "؟") .. "  |  🎮  اللعبة: Steal a Brainrot"
-_infoLabel.Font = Enum.Font.GothamMedium ; _infoLabel.TextSize = 12
-_infoLabel.TextColor3 = C.WHITE
-
-createButton(_G.homeSection, "📋  نسخ الرابط: discord.gg/MxtDGmvkCd", function()
-    setclipboard("https://discord.gg/MxtDGmvkCd")
 end)
 
--- ══════════════════════════════════════════════════════
--- قسم الحركة
--- ══════════════════════════════════════════════════════
-createSectionHeader(_G.movementSection, "🏃  حركة اللاعب")
-local floatSwitch = createSwitch(_G.movementSection, "🌊  طيران بطيء (Float)", CONFIG.Movement.Float.Enabled, function(on)
-    if on then
-        local char = player.Character or player.CharacterAdded:Wait()
-        enableFloat(char)
-        _G.createCircularToggleUI("🌊 Float", function() return CONFIG.Movement.Float.Enabled end, function(s) CONFIG.Movement.Float.Enabled=s; if s then enableFloat(player.Character) else disableFloat() end end)
-    else disableFloat() end
+createButton(_G.togglesSection, "تبديل ديسينك الموبايل", function()
+    createCircularToggleUI("Mobile Desync", function() return _G.mobileDesyncEnabled end, function(state)
+        _G.mobileDesyncEnabled = state
+        -- Don't save settings for mobile desync (fast flag can't be disabled)
+        if state then
+            enableMobileDesync()
+        else
+            disableMobileDesync()
+        end
+    end)
 end)
 
-local platformSwitch = createSwitch(_G.movementSection, "🚀  منصة صاعدة (Platform)", CONFIG.Movement.Rise.Enabled, function(on)
-    if on then
-        local char = player.Character or player.CharacterAdded:Wait()
-        enablePlatform(char)
-        _G.createCircularToggleUI("🚀 Platform", function() return CONFIG.Movement.Rise.Enabled end, function(s) CONFIG.Movement.Rise.Enabled=s end)
-    else disablePlatform() end
-end)
-
-local helicopterSwitch = createSwitch(_G.movementSection, "🚁  هليكوبتر", CONFIG.Movement.Helicopter.Enabled, function(on)
-    if on then
-        local char = player.Character or player.CharacterAdded:Wait()
-        enableHelicopter(char)
-        _G.createCircularToggleUI("🚁 Helicopter", function() return CONFIG.Movement.Helicopter.Enabled end, function(s) CONFIG.Movement.Helicopter.Enabled=s end)
-    else disableHelicopter() end
-end)
-
-local grappleFlightSwitch = createSwitch(_G.movementSection, "⛓  رحلة الجرافل", CONFIG.Movement.GrappleFlight.Enabled, function(on)
-    if on then
-        local char = player.Character or player.CharacterAdded:Wait()
-        enableGrappleFlight(char)
-    else disableGrappleFlight() end
-end)
-
-local infiniteJumpSwitch = createSwitch(_G.movementSection, "⬆  قفز لانهائي", CONFIG.Movement.InfiniteJump.Enabled, function(on)
-    if on then
-        local char = player.Character or player.CharacterAdded:Wait()
-        enableInfiniteJump(char)
-        _G.createCircularToggleUI("⬆ Inf Jump", function() return CONFIG.Movement.InfiniteJump.Enabled end, function(s) CONFIG.Movement.InfiniteJump.Enabled=s end)
-    else disableInfiniteJump() end
-end)
-
-local _, jumpSwitch = setupJumpPowerControl(_G.movementSection)
-local _, speedSwitch = setupSpeedControl(_G.movementSection)
-local _, unhittableSwitchInstance = setupUnhittableControl(_G.movementSection)
-local _, resizeSwitchInstance     = setupResizeControl(_G.movementSection)
-
-createSectionHeader(_G.movementSection, "⚔  نظام الفلينج")
-local flingToggleButton
-local playerSelectButton
-local _, flingSwitchInstance = setupFlingControl(_G.movementSection)
-
-createSectionHeader(_G.movementSection, "🔫  ليزر كيب")
-local originalLaserCapeSwitch = createSwitch(_G.movementSection, "🔫  ليزر كيب أوتو-فاير", false, function(on)
-    if on then
-        if player.Character then enableLaserCape(player.Character) end
-        _G.createCircularToggleUI("🔫 LaserCape", function() return isLaserCapeFiring end, function(s) if s then enableLaserCape(player.Character) else disableLaserCape() end end)
-    else disableLaserCape() end
-end)
-
-createSectionHeader(_G.movementSection, "🩻  راجدول ديسينك")
-local ragdollDesyncSwitch = createSwitch(_G.movementSection, "🩻  راجدول ديسينك", false, function(on)
-    if on then
-        if player.Character then enableRagdollDesync(player.Character) end
-    else disableRagdollDesync() end
-end)
-
--- ══════════════════════════════════════════════════════
--- قسم المرئيات
--- ══════════════════════════════════════════════════════
-createSectionHeader(_G.visualSection, "👁  إعدادات ESP")
-
-_G.playerESPSwitch = createSwitch(_G.visualSection, "👤  ESP اللاعبين", _G.SavedToggleStates and _G.SavedToggleStates.PlayerESP or false, function(on)
-    if on then
-        enableESP()
-        _G.createCircularToggleUI("👤 Player ESP", function() return _G.ESP_Enabled end, function(s) if s then enableESP() else disableESP() end end)
-    else disableESP() end
-end)
-
-_G.plotESPSwitch = createSwitch(_G.visualSection, "🗺  ESP البلوت", _G.SavedToggleStates and _G.SavedToggleStates.PlotESP or false, function(on)
-    if on then
-        enablePlotESP()
-        _G.createCircularToggleUI("🗺 Plot ESP", function() return _G.PlotESP_Enabled end, function(s) if s then enablePlotESP() else disablePlotESP() end end)
-    else disablePlotESP() end
-end)
-
-local plotTimeESPSwitch = createSwitch(_G.visualSection, "⏱  وقت البلوت ESP", true, function(on)
-    if on then enablePlotTimeESP() else disablePlotTimeESP() end
-end)
-if plotTimeESPSwitch then enablePlotTimeESP() end
-
-_G.brainrotESPSwitch = createSwitch(_G.visualSection, "🧠  ESP البراينروت", CONFIG.ESP.BrainrotESP.Enabled, function(on)
+_G.brainrotESPSwitch = createSwitch(_G.visualSection, "ESP البراينروت", CONFIG.ESP.BrainrotESP.Enabled, function(on)
+    CONFIG.ESP.BrainrotESP.Enabled = on
+    _G.saveSettings()
     if on then
         enableBrainrotESP()
-        _G.createCircularToggleUI("🧠 Brainrot ESP", function() return CONFIG.ESP.BrainrotESP.Enabled end, function(s) if s then enableBrainrotESP() else disableBrainrotESP() end end)
-    else disableBrainrotESP() end
+    else
+        disableBrainrotESP()
+    end
 end)
 
-createSectionHeader(_G.visualSection, "🗺  خيارات الخريطة")
-createButton(_G.visualSection, "🗑  حذف الحواجز (Borders)", function()
-    local b = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("Borders")
-    if b then b:Destroy() end
+-- Delete Borders Button
+createButton(_G.visualSection, "احذف الحدود", function()
+    local success, err = pcall(function()
+        local borders = workspace:FindFirstChild("Map")
+        if borders then
+            borders = borders:FindFirstChild("Borders")
+            if borders then
+                borders:Destroy()
+                print("✅ Successfully deleted workspace.Map.Borders!")
+            else
+                warn("❌ workspace.Map.Borders not found!")
+            end
+        else
+            warn("❌ workspace.Map not found!")
+        end
+    end)
+    
+    if not success then
+        warn("❌ Failed to delete borders: " .. tostring(err))
+    end
 end)
-createButton(_G.visualSection, "🧱  زيادة الحاجز Z=13", function()
-    pcall(function()
+
+createButton(_G.visualSection, "توسيع الحاجز", function()
+    local success, err = pcall(function()
         local map = workspace:FindFirstChild("Map")
-        if not map then return end
-        for _, p in ipairs(map:GetDescendants()) do
-            if p:IsA("BasePart") and (p.Name == "Left" or p.Name == "Right" or p.Name == "Front" or p.Name == "Back") then
-                p.Size = Vector3.new(p.Size.X, p.Size.Y, 13)
+        if map then
+            local parts = {
+                map:FindFirstChild("Part"),
+                map:GetChildren()[11],
+                map:GetChildren()[20]
+
+            }
+            for i, part in ipairs(parts) do
+                if part and part:IsA("BasePart") then
+                    part.Size = Vector3.new(part.Size.X, part.Size.Y, 13)
+                    print("✅ Successfully set Z-size to 13 for part at index: " .. tostring(i))
+                else
+                    warn("❌ Part not found or invalid at index: " .. tostring(i))
+                end
+            end
+        else
+            warn("❌ workspace.Map not found!")
+        end
+    end)
+    
+    if not success then
+        warn("❌ Failed to increase barrier sizes: " .. tostring(err))
+    end
+end)
+
+
+
+--=========================================================
+-- Ragdoll Desync System
+--=========================================================
+local ragdollDesyncEnabled = false
+local ragdollConnections = {}
+
+local function enableRagdollDesync()
+    if ragdollDesyncEnabled then return end
+    
+    ragdollDesyncEnabled = true
+    
+    -- Anti-Ragdoll LocalScript for Roblox
+    -- Neutralizes ragdoll system without getconnections, using getloadedmodules, setreadonly, and runtime countermeasures.
+    -- Run early via executor or StarterPlayerScripts.
+
+    local Players = game:GetService("Players")
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local RunService = game:GetService("RunService")
+    local Workspace = game:GetService("Workspace")
+    local LocalPlayer = Players.LocalPlayer
+
+    -- Wait for character to ensure Humanoid and parts are available
+    local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    local Humanoid = Character:WaitForChild("Humanoid", 5)
+    local RootPart = Character:WaitForChild("HumanoidRootPart", 5)
+    local Head = Character:WaitForChild("Head", 5)
+    local CurrentCamera = Workspace.CurrentCamera
+
+    -- Debug function
+    local function debugPrint(message)
+        print("[Anti-Ragdoll] " .. tostring(message))
+    end
+
+    -- Step 1: Override RagDollController module using getloadedmodules
+    local function overrideControllerModule()
+        local Packages = ReplicatedStorage:WaitForChild("Packages", 5)
+        if not Packages then
+            debugPrint("Packages not found in ReplicatedStorage!")
+            return
+        end
+
+        local controllerModule
+        for _, module in ipairs(getloadedmodules()) do
+            local success, moduleName = pcall(function()
+                return module.Name
+            end)
+            if success and (moduleName:lower():match("ragdollcontroller") or moduleName:lower():match("ragdoll")) then
+                local result
+                success, result = pcall(function()
+                    return require(module)
+                end)
+                if success and type(result) == "table" and result.ToggleControls and result.IsInRagdoll and result.Start then
+                    controllerModule = result
+                    debugPrint("Found RagDollController module: " .. moduleName)
+                    break
+                end
             end
         end
+
+        if controllerModule then
+            -- Check if table is read-only and make it writable
+            if isreadonly(controllerModule) then
+                setreadonly(controllerModule, false)
+                debugPrint("Made controllerModule table writable")
+            end
+
+            -- Override functions
+            controllerModule.ToggleControls = newcclosure(function(_, enable)
+                if enable == false then
+                    debugPrint("Blocked attempt to disable controls")
+                    return
+                end
+                local success, controls = pcall(function()
+                    local playerScripts = LocalPlayer:WaitForChild("PlayerScripts", 5)
+                    local playerModule = require(playerScripts:WaitForChild("PlayerModule", 5))
+                    return playerModule:GetControls()
+                end)
+                if success and controls then
+                    controls:Enable()
+                    debugPrint("Forced controls enabled")
+                else
+                    debugPrint("Failed to access PlayerModule controls")
+                end
+            end)
+
+            controllerModule.IsInRagdoll = newcclosure(function()
+                debugPrint("IsInRagdoll called, returning false")
+                return false
+            end)
+
+            controllerModule.Start = newcclosure(function()
+                debugPrint("Blocked Start function")
+            end)
+
+            -- Make table read-only again for safety
+            setreadonly(controllerModule, true)
+            debugPrint("RagDollController module overridden successfully")
+        else
+            debugPrint("Could not find RagDollController module. Falling back to runtime countermeasures.")
+        end
+    end
+
+    -- Run module override
+    overrideControllerModule()
+
+    -- Step 2: Neutralize RagdollClient script and RemoteEvent
+    local function neutralizeRemoteEvent()
+        local Packages = ReplicatedStorage:WaitForChild("Packages", 5)
+        if not Packages then
+            debugPrint("Packages not found for RemoteEvent neutralization!")
+            return
+        end
+
+        local ragdollFolder = Packages:WaitForChild("Ragdoll", 5)
+        if not ragdollFolder then
+            debugPrint("Ragdoll folder not found!")
+            return
+        end
+
+        local ragdollRemote = ragdollFolder:WaitForChild("Ragdoll", 5)
+        if not ragdollRemote then
+            debugPrint("Ragdoll RemoteEvent not found!")
+            return
+        end
+
+        -- Add a no-op connection to reduce impact (won't block existing connections)
+        pcall(function()
+            ragdollConnections.remoteEvent = ragdollRemote.OnClientEvent:Connect(function(arg1, arg2)
+                debugPrint("Intercepted RemoteEvent call: " .. tostring(arg1) .. ", " .. tostring(arg2))
+            end)
+            debugPrint("Added no-op RemoteEvent connection")
+        end)
+
+        -- Disable RagdollClient script using getloadedmodules
+        local foundClientScript = false
+        for _, script in ipairs(getloadedmodules()) do
+            local success, scriptName = pcall(function()
+                return script.Name
+            end)
+            if success and scriptName:lower():match("ragdollclient") then
+                pcall(function()
+                    script.Disabled = true
+                    debugPrint("Disabled RagdollClient script: " .. scriptName)
+                    foundClientScript = true
+                end)
+            end
+        end
+
+        -- Also check PlayerScripts for RagdollClient
+        for _, script in ipairs(LocalPlayer.PlayerScripts:GetChildren()) do
+            if script.Name:lower():match("ragdollclient") then
+                pcall(function()
+                    script.Disabled = true
+                    debugPrint("Disabled PlayerScripts RagdollClient script: " .. script.Name)
+                    foundClientScript = true
+                end)
+            end
+        end
+
+        if not foundClientScript then
+            debugPrint("Could not find RagdollClient script. Relying on runtime countermeasures.")
+        end
+    end
+
+    -- Run RemoteEvent neutralization
+    neutralizeRemoteEvent()
+
+    -- Step 3: Runtime loop to counter ragdoll effects
+    ragdollConnections.heartbeat = RunService.Heartbeat:Connect(function()
+        if not (Humanoid and RootPart and Head and CurrentCamera) then
+            debugPrint("Character components missing, skipping frame")
+            return
+        end
+
+        -- Counter Physics state
+        if Humanoid:GetState() == Enum.HumanoidStateType.Physics then
+            Humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
+            debugPrint("Forced Humanoid out of Physics state")
+        end
+
+        -- Reset camera subject
+        if CurrentCamera.CameraSubject ~= Humanoid then
+            CurrentCamera.CameraSubject = Humanoid
+            debugPrint("Reset CameraSubject to Humanoid")
+        end
+
+        -- Ensure collisions and properties
+        if not RootPart.CanCollide then
+            RootPart.CanCollide = true
+            debugPrint("Forced RootPart.CanCollide to true")
+        end
+
+        if not Humanoid.BreakJointsOnDeath then
+            Humanoid.BreakJointsOnDeath = true
+            debugPrint("Forced BreakJointsOnDeath to true")
+        end
+
+        -- Override RagdollEndTime
+        local currentTime = Workspace:GetServerTimeNow()
+        if LocalPlayer:GetAttribute("RagdollEndTime") and LocalPlayer:GetAttribute("RagdollEndTime") > currentTime then
+            LocalPlayer:SetAttribute("RagdollEndTime", currentTime - 10)
+            debugPrint("Set RagdollEndTime to past value")
+        end
+
+        -- Re-enable controls
+        local success, controls = pcall(function()
+            local playerScripts = LocalPlayer:WaitForChild("PlayerScripts", 5)
+            local playerModule = require(playerScripts:WaitForChild("PlayerModule", 5))
+            return playerModule:GetControls()
+        end)
+        if success and controls and not controls:IsActive() then
+            controls:Enable()
+            debugPrint("Re-enabled player controls")
+        end
     end)
-end)
 
--- ══════════════════════════════════════════════════════
--- قسم المُصلَح
--- ══════════════════════════════════════════════════════
-createSectionHeader(_G.patchedSection, "🔧  ميزات مُصلَحة (Patched)")
-local invisibilitySwitch = createSwitch(_G.patchedSection, "👻  إخفاء (مُصلَح)", _G.SavedToggleStates and _G.SavedToggleStates.Invisibility or false, function(on)
-    setInvisibility(on)
-end)
-local _ , _flingInst = setupFlingControl(_G.patchedSection)
+    -- Step 4: Clean up ragdoll constraints and attachments
+    ragdollConnections.descendantAdded = Character.DescendantAdded:Connect(function(descendant)
+        if descendant:IsA("BallSocketConstraint") or descendant:IsA("HingeConstraint") or descendant:IsA("Attachment") then
+            descendant:Destroy()
+            debugPrint("Destroyed ragdoll constraint/attachment: " .. descendant.Name)
+        end
+    end)
 
--- ══════════════════════════════════════════════════════
--- قسم السيرفر
--- ══════════════════════════════════════════════════════
-createSectionHeader(_G.serverSection, "🌐  خيارات السيرفر")
-local serverHopSwitch = createSwitch(_G.serverSection, "🔄  تبديل سيرفر تلقائي", false, function(on)
-    toggleServerHop(on)
-end)
-createButton(_G.serverSection, "🔁  إعادة الانضمام",     function() _G.rejoinServer() end)
-createButton(_G.serverSection, "🏆  أكبر سيرفر",         function() _G.joinBiggestServer() end)
-createButton(_G.serverSection, "🔰  أصغر سيرفر",         function() _G.joinSmallestServer() end)
+    -- Step 5: Handle character respawn
+    ragdollConnections.characterAdded = LocalPlayer.CharacterAdded:Connect(function(newCharacter)
+        Character = newCharacter
+        Humanoid = Character:WaitForChild("Humanoid", 5)
+        RootPart = Character:WaitForChild("HumanoidRootPart", 5)
+        Head = Character:WaitForChild("Head", 5)
+        debugPrint("Character respawned, reapplied countermeasures")
+    end)
 
--- ══════════════════════════════════════════════════════
--- قسم ديسينك
--- ══════════════════════════════════════════════════════
-createSectionHeader(_G.desyncSection, "⚡  ديسينك موبايل")
-local mobileDesyncSwitch = createSwitch(_G.desyncSection, "📱  ديسينك (موبايل)", false, function(on)
-    if on then enableMobileDesync() else disableMobileDesync() end
-end)
+    debugPrint("Anti-ragdoll script fully activated")
+    print("✅ Ragdoll Desync activated!")
+end
 
--- ══════════════════════════════════════════════════════
--- قسم الإعدادات (settingsContent)
--- ══════════════════════════════════════════════════════
-createSectionHeader(settingsContent, "👁  إعدادات ESP اللاعبين")
-createSwitch(settingsContent, "📏  إظهار المسافة", CONFIG.ESP.PlayerESP.ShowDistance, function(on)
-    CONFIG.ESP.PlayerESP.ShowDistance = on ; if _G.ESP_Enabled then disableESP(); enableESP() end
-end)
-createSwitch(settingsContent, "🎒  إظهار الأدوات", CONFIG.ESP.PlayerESP.ShowItems, function(on)
-    CONFIG.ESP.PlayerESP.ShowItems = on ; if _G.ESP_Enabled then disableESP(); enableESP() end
-end)
-createNumberInput(settingsContent, "📝  حجم خط اللاعب", CONFIG.ESP.PlayerESP.TextSize, function(n)
-    CONFIG.ESP.PlayerESP.TextSize = n ; if _G.ESP_Enabled then disableESP(); enableESP() end
-end)
+local function disableRagdollDesync()
+    if not ragdollDesyncEnabled then return end
+    
+    ragdollDesyncEnabled = false
+    
+    -- Disconnect all connections
+    for _, connection in pairs(ragdollConnections) do
+        pcall(function() connection:Disconnect() end)
+    end
+    ragdollConnections = {}
+    
+    print("❌ Ragdoll Desync disabled!")
+end
 
-createSectionHeader(settingsContent, "🗺  إعدادات ESP البلوت")
-createSwitch(settingsContent, "📏  مسافة البلوت", CONFIG.ESP.PlotESP.ShowDistance, function(on)
-    CONFIG.ESP.PlotESP.ShowDistance = on ; if _G.PlotESP_Enabled then disablePlotESP(); enablePlotESP() end
-end)
-createSwitch(settingsContent, "👤  مالك البلوت", CONFIG.ESP.PlotESP.ShowOwner, function(on)
-    CONFIG.ESP.PlotESP.ShowOwner = on ; if _G.PlotESP_Enabled then disablePlotESP(); enablePlotESP() end
-end)
-createSwitch(settingsContent, "⏱  وقت البلوت", CONFIG.ESP.PlotESP.ShowTime, function(on)
-    CONFIG.ESP.PlotESP.ShowTime = on ; if _G.PlotESP_Enabled then disablePlotESP(); enablePlotESP() end
-end)
-
-createSectionHeader(settingsContent, "🏃  إعدادات الحركة")
-createNumberInput(settingsContent, "⚡  سرعة الجري", CONFIG.Movement.Speed, function(n)
-    CONFIG.Movement.Speed = n ; _G.saveSettings()
-end)
-createNumberInput(settingsContent, "⬆  قوة القفز", CONFIG.Movement.JumpPower, function(n)
-    CONFIG.Movement.JumpPower = n ; _G.saveSettings()
-    if player.Character then
-        local hum = player.Character:FindFirstChildOfClass("Humanoid")
-        if hum then hum.UseJumpPower=true; hum.JumpPower=n end
+-- Add Ragdoll Desync to Movement section
+local ragdollDesyncSwitch = createSwitch(_G.movementSection, "ديسينك الرجل", false, function(on)
+    CONFIG.Movement.RagdollDesync = CONFIG.Movement.RagdollDesync or {}
+    CONFIG.Movement.RagdollDesync.Enabled = on
+    _G.saveSettings()
+    if on then
+        enableRagdollDesync()
+    else
+        disableRagdollDesync()
     end
 end)
 
-createSectionHeader(settingsContent, "🔄  إعادة التعيين")
-createButton(settingsContent, "🔄  إعادة تعيين الإعدادات", function()
-    if _G.safeIsFile("Ken_HUB_Settings.json") then pcall(delfile,"Ken_HUB_Settings.json") end
-    CONFIG.Movement.Speed = 43 ; CONFIG.Movement.JumpPower = 73.5
-    _G.saveSettings()
+--=========================================================
+-- Desync Section
+--=========================================================
+createSectionHeader(_G.desyncSection, "تحكم الديسينك")
+
+-- Mobile Desync Toggle
+_G.mobileDesyncEnabled = false
+local mobileDesyncSwitch = createSwitch(_G.desyncSection, "ديسينك الموبايل", false, function(on)
+    pcall(function()
+        _G.mobileDesyncEnabled = on
+        if on then
+            enableMobileDesync()
+        else
+            disableMobileDesync()
+        end
+        -- Don't save settings for mobile desync (fast flag can't be disabled)
+    end)
 end)
 
 
--- ══════════════════════════════════════════════════════════════
---  ⭐  قسم AXL BRAINROT PREMIUM
--- ══════════════════════════════════════════════════════════════
 
--- ──── ثيم AXL ────
-local AXL = {
-    GOLD  = Color3.fromRGB(255,200,45),
-    DIM   = Color3.fromRGB(160,118,18),
-    DARK  = Color3.fromRGB(55,38,3),
-    WHITE = Color3.fromRGB(240,240,240),
-    SUB   = Color3.fromRGB(130,130,130),
-    GREEN = Color3.fromRGB(40,210,90),
-    RED   = Color3.fromRGB(215,45,45),
+
+local isDragging = false
+timeSizeButton.MouseButton1Down:Connect(function()
+    isDragging = true
+end)
+
+game:GetService("UserInputService").InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        isDragging = false
+    end
+end)
+
+game:GetService("RunService").Heartbeat:Connect(function()
+    if isDragging then
+        local mouse = game:GetService("Players").LocalPlayer:GetMouse()
+        local sliderPos = timeSizeBar.AbsolutePosition.X
+        local sliderWidth = timeSizeBar.AbsoluteSize.X
+        local mouseX = mouse.X
+        local relativeX = math.clamp((mouseX - sliderPos) / sliderWidth, 0, 1)
+        local newSize = math.floor(16 + relativeX * (48 - 16))
+        
+        if newSize ~= CONFIG.ESP.PlotESP.TimeTextSize then
+            CONFIG.ESP.PlotESP.TimeTextSize = newSize
+            timeSizeLabel.Text = "Plot Time Text Size: " .. newSize
+            timeSizeFill.Size = UDim2.new(relativeX, 0, 1, 0)
+            timeSizeButton.Position = UDim2.new(relativeX, -10, 0, 0)
+            
+            -- Recreate PlotTimeESP billboards with new text size
+            if _G.PlotTimeESP_Enabled then
+                disablePlotTimeESP() -- Disable to clear existing billboards
+                enablePlotTimeESP() -- Re-enable to recreate with new text size
+            end
+            
+            _G.saveSettings()
+        end
+    end
+end)
+
+
+createSectionHeader(settingsContent, "اعدادات الحركة")
+
+-- Float Speed Control
+createNumberInput(settingsContent, "Float Descent Speed", CONFIG.Movement.Float.DescentSpeed, function(value)
+    local success, _ = pcall(function()
+        CONFIG.Movement.Float.DescentSpeed = math.clamp(value, 0.01, 5)
+        _G.saveSettings()
+    end)
+    if not success then
+        warn("Failed to update Float Descent Speed")
+    end
+end)
+
+-- Helicopter Control
+createNumberInput(settingsContent, "Helicopter Rotation Speed", CONFIG.Movement.Helicopter.RotationSpeed, function(value)
+    local success, _ = pcall(function()
+        CONFIG.Movement.Helicopter.RotationSpeed = math.clamp(value, 1, 100)
+        _G.saveSettings()
+    end)
+    if not success then
+        warn("Failed to update Helicopter Rotation Speed")
+    end
+end)
+createNumberInput(settingsContent, "Grapple Flight Speed", CONFIG.Movement.GrappleFlight.Speed, function(value)
+    local success, _ = pcall(function()
+        CONFIG.Movement.GrappleFlight.Speed = math.clamp(value, 50, 500)
+        _G.saveSettings()
+    end)
+    if not success then
+        warn("Failed to update Grapple Flight Speed")
+    end
+end)
+createNumberInput(settingsContent, "Infinite Jump Power", CONFIG.Movement.InfiniteJump.JumpPower, function(value)
+    local success, _ = pcall(function()
+        CONFIG.Movement.InfiniteJump.JumpPower = math.clamp(value, 20, 100)
+        _G.saveSettings()
+    end)
+    if not success then
+        warn("Failed to update Infinite Jump Power")
+    end
+end)
+createNumberInput(settingsContent, "Infinite Jump Cooldown", CONFIG.Movement.InfiniteJump.Cooldown, function(value)
+    local success, _ = pcall(function()
+        CONFIG.Movement.InfiniteJump.Cooldown = math.clamp(value, 0.1, 1.0)
+        _G.saveSettings()
+    end)
+    if not success then
+        warn("Failed to update Infinite Jump Cooldown")
+    end
+end)
+
+-- Rise Settings Controls
+createNumberInput(settingsContent, "Rise speed", CONFIG.Movement.Rise.Speed, function(value)
+    local success, _ = pcall(function()
+        CONFIG.Movement.Rise.Speed = math.clamp(value, 1, 50)
+        _G.saveSettings()
+        -- Update velocity if Rise is currently active
+        if RISE_ENABLED and riseBodyVelocity then
+            riseBodyVelocity.Velocity = Vector3.new(0, CONFIG.Movement.Rise.Speed, 0)
+        end
+    end)
+    if not success then
+        warn("Failed to update Rise Speed")
+    end
+end)
+
+createNumberInput(settingsContent, "Rise Max Height", CONFIG.Movement.Rise.MaxHeight, function(value)
+    local success, _ = pcall(function()
+        CONFIG.Movement.Rise.MaxHeight = math.clamp(value, 10, 2000)
+        _G.saveSettings()
+    end)
+    if not success then
+        warn("Failed to update Rise Max Height")
+    end
+end)
+
+-- Reset Settings Button
+createSectionHeader(settingsContent, "اعادة الضبط")
+local resetSettingsButton = Instance.new("TextButton")
+resetSettingsButton.Size = UDim2.new(1, 0, 0, 40)
+resetSettingsButton.BackgroundColor3 = CONFIG.Colors.Danger
+resetSettingsButton.Text = "Reset All Settings"
+resetSettingsButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+resetSettingsButton.Font = Enum.Font.GothamBold
+resetSettingsButton.TextSize = 16
+resetSettingsButton.AutoButtonColor = false
+resetSettingsButton.Parent = settingsContent
+Instance.new("UICorner", resetSettingsButton).CornerRadius = UDim.new(0, 8)
+local resetStroke = Instance.new("UIStroke", resetSettingsButton)
+resetStroke.Thickness = 1
+resetStroke.Color = CONFIG.Colors.Danger
+resetStroke.Transparency = 0.3
+
+resetSettingsButton.MouseButton1Click:Connect(function()
+    local success, _ = pcall(function()
+        -- Reset all settings to defaults
+        CONFIG.ESP.PlayerESP.HighlightColor = Color3.fromRGB(255, 0, 0)
+        CONFIG.ESP.PlotESP.HighlightColor = Color3.fromRGB(0, 255, 0)
+        CONFIG.ESP.PlotESP.TimeTextSize = 14
+        CONFIG.Movement.Unhittable = {
+            IntermediateSize = { X = 2, Y = 20, Z = 1 },
+            TallSize = { X = 2, Y = 40, Z = 1 },
+        }
+        CONFIG.Movement.Resize = {
+            TargetSize = { X = 2, Y = 10, Z = 1 },
+        }
+        CONFIG.Movement.Helicopter = {
+            Enabled = false,
+            RotationSpeed = 20,
+        }
+        _G.saveSettings()
+        
+        -- Update color picker buttons
+        playerColorButton.BackgroundColor3 = CONFIG.ESP.PlayerESP.HighlightColor
+        plotColorButton.BackgroundColor3 = CONFIG.ESP.PlotESP.HighlightColor
+        
+        -- Update slider
+        timeSizeLabel.Text = "Plot Time Text Size: " .. CONFIG.ESP.PlotESP.TimeTextSize
+        local relativeX = math.clamp((CONFIG.ESP.PlotESP.TimeTextSize - 16) / (48 - 16), 0, 1)
+        timeSizeFill.Size = UDim2.new(relativeX, 0, 1, 0)
+        timeSizeButton.Position = UDim2.new(relativeX, -10, 0, 0)
+        
+        -- Update existing ESP
+        for plr, data in pairs(ESP_Data) do
+            if typeof(plr) == "Instance" and data.highlight then
+                data.highlight.OutlineColor = CONFIG.ESP.PlayerESP.HighlightColor
+            end
+        end
+        for plot, data in pairs(_G.PlotESP_Data) do
+            if typeof(plot) == "Instance" and data.highlight then
+                data.highlight.OutlineColor = CONFIG.ESP.PlotESP.HighlightColor
+            end
+            if typeof(plot) == "Instance" and data.timeLabel then
+                data.timeLabel.TextSize = CONFIG.ESP.PlotESP.TimeTextSize
+            end
+        end
+        -- Settings reset to defaults
+    end)
+    if not success then
+        warn("Failed to reset settings")
+    end
+end)
+
+--=========================================================
+-- Laser Cape Auto-Fire System (UPDATED - Only works when you own the item)
+--=========================================================
+local isLaserCapeFiring = false
+local laserCapeThread = nil
+local laserCapeCheckConnection = nil
+
+local function playerHasLaserCape()
+    -- Check if player has Laser Cape in backpack or equipped
+    if not player then return false end
+    
+    local success, hasCape = pcall(function()
+        -- Check backpack
+        if player.Backpack then
+            local capeInBackpack = player.Backpack:FindFirstChild("Laser Cape")
+            if capeInBackpack then return true end
+        end
+        
+        -- Check character
+        if player.Character then
+            local capeEquipped = player.Character:FindFirstChild("Laser Cape")
+            if capeEquipped then return true end
+        end
+        
+        -- Check inventory (if applicable)
+        local inventory = player:FindFirstChild("Inventory")
+        if inventory then
+            for _, item in ipairs(inventory:GetChildren()) do
+                if item.Name == "Laser Cape" or (item:IsA("StringValue") and item.Value == "Laser Cape") then
+                    return true
+                end
+            end
+        end
+        
+        return false
+    end)
+    
+    if not success then
+        warn("Failed to check for Laser Cape")
+        return false
+    end
+    
+    return hasCape
+end
+
+local function findClosestHumanoidRootParts(maxDistance)
+    local rootParts = {}
+    
+    if not player.Character then return rootParts end
+    
+    local playerRoot = player.Character:FindFirstChild("HumanoidRootPart")
+    if not playerRoot then return rootParts end
+    
+    -- Get all players except yourself
+    for _, otherPlayer in ipairs(Players:GetPlayers()) do
+        if otherPlayer ~= player and otherPlayer.Character then
+            local humanoidRootPart = otherPlayer.Character:FindFirstChild("HumanoidRootPart")
+            if humanoidRootPart then
+                local distance = (playerRoot.Position - humanoidRootPart.Position).Magnitude
+                if distance <= maxDistance then
+                    table.insert(rootParts, {
+                        part = humanoidRootPart,
+                        distance = distance,
+                        player = otherPlayer
+                    })
+                end
+            end
+        end
+    end
+    
+    -- Sort by distance (closest first)
+    table.sort(rootParts, function(a, b)
+        return a.distance < b.distance
+    end)
+    
+    return rootParts
+end
+
+local function useLaserCapeOnTarget(targetRootPart)
+    if not player.Character then 
+        warn("No character found")
+        return false 
+    end
+    
+    -- Check if player actually has the laser cape
+    if not playerHasLaserCape() then
+        warn("Player does not own Laser Cape")
+        return false
+    end
+    
+    local humanoid = player.Character:FindFirstChild("Humanoid")
+    local humanoidRootPart = player.Character:FindFirstChild("HumanoidRootPart")
+    
+    if not humanoid or not humanoidRootPart then 
+        warn("Humanoid or HumanoidRootPart not found")
+        return false 
+    end
+    
+    local laserCape = player.Backpack:FindFirstChild("Laser Cape") or player.Character:FindFirstChild("Laser Cape")
+    if not laserCape then 
+        warn("Laser Cape not found")
+        return false 
+    end
+    
+    -- Equip the laser cape if not already equipped
+    if laserCape.Parent ~= player.Character then
+        humanoid:EquipTool(laserCape)
+        task.wait(0.1) -- Wait for equip animation
+    end
+    
+    -- Use the Laser Cape on the target HumanoidRootPart
+    if UseItemEvent then
+        local success, err = pcall(function()
+            UseItemEvent:FireServer(targetRootPart.Position, targetRootPart)
+        end)
+        if success then
+            return true
+        else
+            warn("Failed to fire UseItemEvent: " .. tostring(err))
+            return false
+        end
+    else
+        warn("UseItemEvent not found")
+        return false
+    end
+end
+
+local function fireOnClosestHumanoids()
+    -- Only fire if player has laser cape
+    if not playerHasLaserCape() then
+        warn("Cannot fire Laser Cape - player does not own it")
+        if isLaserCapeFiring and laserCapeSwitch then
+            laserCapeSwitch.set(false) -- Auto-disable if player doesn't have cape
+        end
+        return
+    end
+    
+    local maxDistance = 50 -- Maximum distance to target
+    local closestRootParts = findClosestHumanoidRootParts(maxDistance)
+    
+    if #closestRootParts == 0 then
+        warn("No humanoid root parts found nearby")
+        return
+    end
+    
+    -- Always fire on the closest target (first in the sorted list)
+    local closestTarget = closestRootParts[1]
+    -- Firing Laser Cape at target
+    useLaserCapeOnTarget(closestTarget.part)
+end
+
+local function enableLaserCape()
+    if isLaserCapeFiring then return end
+    
+    -- Check if player has laser cape before enabling
+    if not playerHasLaserCape() then
+        warn("Cannot enable Laser Cape Auto-Fire - player does not own Laser Cape")
+        if laserCapeSwitch then laserCapeSwitch.set(false) end
+        return
+    end
+    
+    isLaserCapeFiring = true
+    -- Laser Cape Auto-Fire enabled
+    
+    if not laserCapeThread then
+        laserCapeThread = task.spawn(function()
+            while isLaserCapeFiring do
+                if player.Character and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 then
+                    -- Re-check if player still has laser cape
+                    if playerHasLaserCape() then
+                        fireOnClosestHumanoids()
+                    else
+                        warn("Player lost Laser Cape, disabling auto-fire")
+                        isLaserCapeFiring = false
+                        if laserCapeSwitch then laserCapeSwitch.set(false) end
+                        break
+                    end
+                else
+                    warn("Player character not available or dead")
+                    isLaserCapeFiring = false
+                    if laserCapeSwitch then laserCapeSwitch.set(false) end
+                    break
+                end
+                task.wait(0.5) -- Wait between shots
+            end
+            laserCapeThread = nil
+        end)
+    end
+    
+    -- Set up periodic checking for laser cape acquisition/loss
+    if not laserCapeCheckConnection then
+        laserCapeCheckConnection = RunService.Heartbeat:Connect(function()
+            if isLaserCapeFiring and not playerHasLaserCape() then
+                warn("Player lost Laser Cape, disabling auto-fire")
+                isLaserCapeFiring = false
+                if laserCapeSwitch then laserCapeSwitch.set(false) end
+                if laserCapeCheckConnection then
+                    laserCapeCheckConnection:Disconnect()
+                    laserCapeCheckConnection = nil
+                end
+            end
+        end)
+    end
+end
+
+local function disableLaserCape()
+    if not isLaserCapeFiring then return end
+    isLaserCapeFiring = false
+    -- Laser Cape Auto-Fire disabled
+    
+    if laserCapeThread then
+        task.cancel(laserCapeThread)
+        laserCapeThread = nil
+    end
+    
+    if laserCapeCheckConnection then
+        laserCapeCheckConnection:Disconnect()
+        laserCapeCheckConnection = nil
+    end
+end
+
+-- Update the laser cape switch to check if player has the cape
+local originalLaserCapeSwitch = createSwitch(_G.movementSection, "عباءة الليزر التلقائية", false, function(on)
+    if on then
+        -- Only enable if player has laser cape
+        if playerHasLaserCape() then
+            enableLaserCape()
+        else
+            warn("Cannot enable Laser Cape Auto-Fire - player does not own Laser Cape")
+            if laserCapeSwitch then laserCapeSwitch.set(false) end
+        end
+    else
+        disableLaserCape()
+    end
+end)
+
+-- Create a reference to the switch for other functions to use
+_G.laserCapeSwitch = originalLaserCapeSwitch
+
+--=========================================================
+-- Button Interactions
+--=========================================================
+settingsBtn.MouseButton1Click:Connect(function()
+    local success, _ = pcall(function()
+        settingsFrame.Visible = not settingsFrame.Visible
+    end)
+    if not success then
+        warn("Failed to toggle settings frame visibility")
+    end
+end)
+
+settingsCloseBtn.MouseButton1Click:Connect(function()
+    local success, _ = pcall(function()
+        settingsFrame.Visible = false
+    end)
+    if not success then
+        warn("Failed to close settings frame")
+    end
+end)
+
+local isMinimized = false
+minimizeBtn.MouseButton1Click:Connect(function()
+    local success, _ = pcall(function()
+        isMinimized = not isMinimized
+        mainFrame.Size = isMinimized and CONFIG.UI.MinimizedSize or CONFIG.UI.FrameSize
+        sidebar.Visible = not isMinimized
+        contentArea.Visible = not isMinimized
+        minimizeBtn.Text = isMinimized and "+" or "−"
+    end)
+    if not success then
+        warn("Failed to toggle minimize state")
+    end
+end)
+
+closeBtn.MouseButton1Click:Connect(function()
+    local success, _ = pcall(function()
+        -- Disable all features safely
+        if playerESPSwitch and playerESPSwitch.set then playerESPSwitch.set(false) end
+        if plotESPSwitch and plotESPSwitch.set then plotESPSwitch.set(false) end
+        if serverHopSwitch and serverHopSwitch.set then serverHopSwitch.set(false) end
+        if jumpSwitch and jumpSwitch.set then jumpSwitch.set(false) end
+        if speedSwitch and speedSwitch.set then speedSwitch.set(false) end
+        if invisibilitySwitch and invisibilitySwitch.set then invisibilitySwitch.set(false) end
+        if unhittableSwitchInstance and unhittableSwitchInstance.set then unhittableSwitchInstance.set(false) end
+        if resizeSwitchInstance and resizeSwitchInstance.set then resizeSwitchInstance.set(false) end
+        if flingSwitchInstance and flingSwitchInstance.set then flingSwitchInstance.set(false) end
+        
+        -- Disable movement features
+        if CONFIG.Movement.Helicopter and CONFIG.Movement.Helicopter.Enabled then
+            pcall(function() disableHelicopter() end)
+        end
+        if CONFIG.Movement.GrappleFlight and CONFIG.Movement.GrappleFlight.Enabled then
+            pcall(function() disableGrappleFlight() end)
+        end
+        if CONFIG.Movement.InfiniteJump and CONFIG.Movement.InfiniteJump.Enabled then
+            pcall(function() disableInfiniteJump() end)
+        end
+        if CONFIG.Movement.Rise and CONFIG.Movement.Rise.Enabled then
+            disableRise()
+        end
+        if CONFIG.Movement.Float and CONFIG.Movement.Float.Enabled then
+            disableFloat()
+        end
+        
+        -- Disable ESP features
+        if _G.ESP_Enabled then
+            disableESP()
+        end
+        if _G.PlotESP_Enabled then
+            disablePlotESP()
+        end
+        if _G.PlotTimeESP_Enabled then
+            disablePlotTimeESP()
+        end
+        if CONFIG.ESP.BrainrotESP and CONFIG.ESP.BrainrotESP.Enabled then
+            disableBrainrotESP()
+        end
+        
+        -- Disable Desync features
+        if _G.mobileDesyncEnabled then
+            disableMobileDesync()
+        end
+        if CONFIG.Movement.RagdollDesync and CONFIG.Movement.RagdollDesync.Enabled then
+            disableRagdollDesync()
+        end
+        
+        -- Destroy UI
+        if screenGui and screenGui.Parent then
+            screenGui:Destroy()
+        end
+        if circularToggleGui and circularToggleGui.Parent then
+            circularToggleGui:Destroy()
+        end
+    end)
+    if not success then
+        warn("Failed to close UI")
+    end
+end)
+
+--=========================================================
+-- Character Respawn Handling
+--=========================================================
+player.CharacterAdded:Connect(function(newCharacter)
+    local success, _ = pcall(function()
+        character = newCharacter
+        humanoid = newCharacter:WaitForChild("Humanoid", 5)
+        humanoidRootPart = newCharacter:WaitForChild("HumanoidRootPart", 5)
+
+        -- Reapply active settings
+        if jumpSwitch and jumpSwitch.get then
+        if jumpSwitch.get() then
+            humanoid.UseJumpPower = true
+            humanoid.JumpPower = CONFIG.Movement.JumpPower
+            end
+        end
+
+        if speedSwitch and speedSwitch.get and speedSwitch.set then
+        if speedSwitch.get() then
+            speedSwitch.set(false) -- Disable and re-enable to reset connections
+            speedSwitch.set(true)
+            end
+        end
+
+        if invisibilitySwitch and invisibilitySwitch.get then
+        if invisibilitySwitch.get() then
+                task.wait(0.5) -- Wait for character to be ready
+            setInvisibility(true)
+            end
+        end
+
+        if unhittableSwitchInstance and unhittableSwitchInstance.get and unhittableSwitchInstance.set then
+        if unhittableSwitchInstance.get() then
+            unhittableSwitchInstance.set(false)
+            unhittableSwitchInstance.set(true)
+            end
+        end
+
+        if resizeSwitchInstance and resizeSwitchInstance.get and resizeSwitchInstance.set then
+        if resizeSwitchInstance.get() then
+            resizeSwitchInstance.set(false)
+            resizeSwitchInstance.set(true)
+            end
+        end
+
+        if flingSwitchInstance and flingSwitchInstance.get and flingSwitchInstance.set then
+        if flingSwitchInstance.get() then
+            flingSwitchInstance.set(false)
+            flingSwitchInstance.set(true)
+            end
+        end
+        
+        if originalLaserCapeSwitch and originalLaserCapeSwitch.get then
+        if originalLaserCapeSwitch.get() then
+                pcall(function() disableLaserCape() end)
+                pcall(function() enableLaserCape() end)
+            end
+        end
+
+        if CONFIG.Movement.GrappleFlight.Enabled then
+            pcall(function() disableGrappleFlight() end)
+            pcall(function() enableGrappleFlight() end)
+        end
+
+        if CONFIG.Movement.InfiniteJump.Enabled then
+            pcall(function() disableInfiniteJump() end)
+            pcall(function() enableInfiniteJump() end)
+        end
+
+        -- Re-enable Rise if enabled (with loaded settings)
+        if CONFIG.Movement.Rise.Enabled then
+            disableRise()
+            if player.Character then
+                enableRise(player.Character) -- Uses latest CONFIG.Movement.Rise.Speed/MaxHeight
+            end
+        end
+        
+        -- Re-enable Float if enabled
+        if CONFIG.Movement.Float.Enabled then
+            pcall(function() disableFloat() end)
+            pcall(function() enableFloat(newCharacter) end)
+        end
+        
+        -- Re-enable Helicopter if enabled
+        if CONFIG.Movement.Helicopter.Enabled then
+            pcall(function() disableHelicopter() end)
+            pcall(function() enableHelicopter(newCharacter) end)
+        end
+        
+        -- Re-enable Mobile Desync if enabled
+        if _G.mobileDesyncEnabled then
+            pcall(function() disableMobileDesync() end)
+            pcall(function() enableMobileDesync() end)
+        end
+        
+        -- Re-enable Ragdoll Desync if enabled
+        if CONFIG.Desync.RagdollDesync.Enabled then
+            pcall(function() disableRagdollDesync() end)
+            pcall(function() enableRagdollDesync(newCharacter) end)
+        end
+
+        -- Reattach ESP if enabled
+        if _G.ESP_Enabled then
+            for _, plr in ipairs(Players:GetPlayers()) do
+                if plr ~= player and plr.Character then
+                    attachHighlightToCharacter(plr, plr.Character)
+                end
+            end
+        end
+        
+        -- Re-enable Plot ESP if enabled
+        if _G.PlotESP_Enabled then
+            pcall(function() disablePlotESP() end)
+            pcall(function() enablePlotESP() end)
+        end
+        
+        -- Re-enable Plot Time ESP if enabled
+        if _G.PlotTimeESP_Enabled then
+            pcall(function() disablePlotTimeESP() end)
+            pcall(function() enablePlotTimeESP() end)
+        end
+        
+        -- Re-enable Brainrot ESP if enabled
+        if CONFIG.ESP.BrainrotESP.Enabled then
+            pcall(function() disableBrainrotESP() end)
+            pcall(function() enableBrainrotESP() end)
+        end
+        
+        -- Re-enable Anti-Kick if enabled
+        if CONFIG.AntiKick.Enabled then
+            pcall(function() disableAntiKick() end)
+            pcall(function() enableAntiKick() end)
+        end
+    end)
+    if not success then
+        warn("Failed to handle character respawn")
+    end
+end)
+
+--=========================================================
+-- Initial Setup
+--=========================================================
+--=========================================================
+-- ⭐ AXL BRAINROT PREMIUM SECTION
+--=========================================================
+
+-- ثيم AXL (أسود وذهبي)
+local AXL_THEME = {
+    GOLD      = Color3.fromRGB(255, 200,  50),
+    GOLD_DIM  = Color3.fromRGB(180, 130,  20),
+    BG        = Color3.fromRGB(10,  10,  10),
+    PANEL     = Color3.fromRGB(18,  18,  18),
+    GREEN     = Color3.fromRGB(50,  220, 100),
+    RED       = Color3.fromRGB(255,  50,  50),
+    SUB       = Color3.fromRGB(140, 140, 140),
+    WHITE     = Color3.fromRGB(255, 255, 255),
 }
 
--- ──── حالات AXL ────
-local AXL_EN = {BUILD=false, TRANS=true, ESP=true, AFK=true, MOVE=false}
+-- AXL Toggle States
+local AXL_ENABLED = {
+    BUILD        = false,
+    TRANSPARENCY = true,
+    ESP_RARE     = true,
+    ANTI_AFK     = true,
+    RANDOM_MOVE  = false,
+}
 
--- ──── Build System v8 ────
-local AXL_MAP = "AXL_PREMIUM_MAP"
-local function axlClear()
-    local ex = workspace:FindFirstChild(AXL_MAP)
+-- ══════════════════════
+-- AXL BUILD SYSTEM v8
+-- ══════════════════════
+local AXL_MAP_NAME = "AXL_PREMIUM_MAP"
+
+local function axlClearBuild()
+    local ex = workspace:FindFirstChild(AXL_MAP_NAME)
     if ex then ex:Destroy() end
 end
-local function axlLabel(part)
-    local bg = Instance.new("BillboardGui", part)
-    bg.Size = UDim2.new(0,50,0,20) ; bg.AlwaysOnTop = true ; bg.ExtentsOffset = Vector3.new(0,2,0)
-    local lb = Instance.new("TextLabel", bg)
-    lb.BackgroundTransparency=1 ; lb.Size=UDim2.new(1,0,1,0)
-    lb.Text="درج" ; lb.Font=Enum.Font.GothamBold
-    lb.TextColor3=AXL.GOLD ; lb.TextSize=10 ; lb.TextTransparency=0.3
+
+local function axlAddStairLabel(part)
+    local bgui = Instance.new("BillboardGui", part)
+    bgui.Size = UDim2.new(0, 50, 0, 20)
+    bgui.Adornee = part
+    bgui.AlwaysOnTop = true
+    bgui.ExtentsOffset = Vector3.new(0, 2, 0)
+    local lbl = Instance.new("TextLabel", bgui)
+    lbl.BackgroundTransparency = 1
+    lbl.Size = UDim2.new(1, 0, 1, 0)
+    lbl.Text = "درج"
+    lbl.Font = Enum.Font.GothamBold
+    lbl.TextColor3 = AXL_THEME.GOLD
+    lbl.TextSize = 10
+    lbl.TextTransparency = 0.3
 end
-local function axlPart(pos, sz, parent, col)
+
+local function axlCreatePart(pos, size, parent, color)
     local p = Instance.new("Part", parent)
-    p.Size=sz ; p.Position=pos+Vector3.new(0,10,0)
-    p.Anchored=true ; p.Material=Enum.Material.Neon
-    p.Color=col or AXL.DARK ; p.Transparency=0.2
-    local sb=Instance.new("SelectionBox",p)
-    sb.Adornee=p ; sb.Color3=AXL.GOLD ; sb.LineThickness=0.05
-    TweenService:Create(p,TweenInfo.new(0.3),{Position=pos}):Play()
+    p.Size = size
+    p.Position = pos + Vector3.new(0, 10, 0)
+    p.Anchored = true
+    p.Material = Enum.Material.Neon
+    p.Color = color or AXL_THEME.BG
+    p.Transparency = 0.2
+    local sb = Instance.new("SelectionBox", p)
+    sb.Adornee = p
+    sb.Color3 = AXL_THEME.GOLD
+    sb.LineThickness = 0.05
+    TweenService:Create(p, TweenInfo.new(0.3), {Position = pos}):Play()
     return p
 end
-local function axlStairs(bPos, bSz, parent)
-    local dirs = {
-        bPos+Vector3.new( bSz.X/2+4,-1,0),
-        bPos+Vector3.new(-(bSz.X/2+4),-1,0),
-        bPos+Vector3.new(0,-1, bSz.Z/2+4),
-        bPos+Vector3.new(0,-1,-(bSz.Z/2+4))
+
+local function axlBuildFullStairs(basePos, baseSize, parent)
+    local stepSize = Vector3.new(8, 0.5, 3)
+    local positions = {
+        basePos + Vector3.new( baseSize.X/2 + 4, -1, 0),
+        basePos + Vector3.new(-(baseSize.X/2 + 4), -1, 0),
+        basePos + Vector3.new(0, -1,  baseSize.Z/2 + 4),
+        basePos + Vector3.new(0, -1, -(baseSize.Z/2 + 4))
     }
-    for _,d in ipairs(dirs) do
-        for i=1,5 do
-            local off
-            if d.X~=bPos.X then off=Vector3.new((d.X>bPos.X and i*2.5 or -i*2.5),-(i*1.2),0)
-            else off=Vector3.new(0,-(i*1.2),(d.Z>bPos.Z and i*2.5 or -i*2.5)) end
-            local step=axlPart(d+off,Vector3.new(8,.5,3),parent,AXL.DIM)
-            if i==1 then axlLabel(step) end
+    for _, p in ipairs(positions) do
+        for i = 1, 5 do
+            local offset
+            if p.X ~= basePos.X then
+                offset = Vector3.new((p.X > basePos.X and i*2.5 or -i*2.5), -(i*1.2), 0)
+            else
+                offset = Vector3.new(0, -(i*1.2), (p.Z > basePos.Z and i*2.5 or -i*2.5))
+            end
+            local step = axlCreatePart(p + offset, stepSize, parent, AXL_THEME.GOLD_DIM)
+            if i == 1 then axlAddStairLabel(step) end
         end
     end
 end
-local function axlBuild()
-    axlClear()
-    local m=Instance.new("Model",workspace) ; m.Name=AXL_MAP
-    local data={
-        {Vector3.new(-350,-3.5,60),Vector3.new(15,1,350)},
-        {Vector3.new(-460,-3.5,60),Vector3.new(15,1,350)},
-        {Vector3.new(-405,-3,-20),Vector3.new(125,1,15)},
-        {Vector3.new(-405,-3,150),Vector3.new(125,1,15)},
+
+local function axlStartBuild()
+    axlClearBuild()
+    local model = Instance.new("Model", workspace)
+    model.Name = AXL_MAP_NAME
+    local data = {
+        {Vector3.new(-350, -3.5, 60),  Vector3.new(15, 1, 350)},
+        {Vector3.new(-460, -3.5, 60),  Vector3.new(15, 1, 350)},
+        {Vector3.new(-405, -3, -20),   Vector3.new(125, 1, 15)},
+        {Vector3.new(-405, -3, 150),   Vector3.new(125, 1, 15)},
     }
+    local cam = workspace.CurrentCamera
+    local oldCamType = cam.CameraType
+    cam.CameraType = Enum.CameraType.Scriptable
     task.spawn(function()
-        for _,info in ipairs(data) do
-            axlPart(info[1],info[2],m)
-            axlStairs(info[1],info[2],m)
-            task.wait(.1)
+        for _, info in ipairs(data) do
+            TweenService:Create(cam, TweenInfo.new(0.3), {
+                CFrame = CFrame.new(info[1] + Vector3.new(50, 50, 50), info[1])
+            }):Play()
+            axlCreatePart(info[1], info[2], model)
+            axlBuildFullStairs(info[1], info[2], model)
+            task.wait(0.1)
         end
+        task.wait(0.5)
+        cam.CameraType = oldCamType
     end)
 end
 
--- ──── شفافية البلوت ────
-local AXL_TPATS = {"Side","Structure","Base","Home"}
-local function axlIsTarget(n)
-    for _,p in ipairs(AXL_TPATS) do if string.find(n,p) then return true end end
+-- ══════════════════════
+-- PLOT TRANSPARENCY
+-- ══════════════════════
+local AXL_TRANS_PATTERNS = {"Side", "Structure", "Base", "Home"}
+
+local function axlIsTarget(name)
+    for _, pat in ipairs(AXL_TRANS_PATTERNS) do
+        if string.find(name, pat) then return true end
+    end
+    return false
 end
-local function axlTransModel(model)
+
+local function axlMakeTransparent(part)
+    if part:IsA("BasePart") then part.Transparency = 0.9 end
+end
+
+local function axlProcessModel(model)
     if not model:IsA("Model") then return end
-    for _,c in ipairs(model:GetDescendants()) do
-        if c:IsA("BasePart") and axlIsTarget(c.Name) then c.Transparency=0.9 end
+    for _, child in ipairs(model:GetDescendants()) do
+        if child:IsA("BasePart") and axlIsTarget(child.Name) then
+            axlMakeTransparent(child)
+        elseif child:IsA("Model") and axlIsTarget(child.Name) then
+            for _, sub in ipairs(child:GetDescendants()) do
+                if sub:IsA("BasePart") then axlMakeTransparent(sub) end
+            end
+        end
     end
 end
-local function axlApplyTrans()
-    local ok,pf=pcall(function() return workspace:WaitForChild("Plots",5) end)
-    if not ok or not pf then return end
-    for _,plot in ipairs(pf:GetChildren()) do axlTransModel(plot) end
-    pf.ChildAdded:Connect(function(p) if AXL_EN.TRANS then axlTransModel(p) end end)
-end
-if AXL_EN.TRANS then task.spawn(axlApplyTrans) end
 
--- ──── ESP النوادر ────
-local AXL_RARE = {
+local function axlApplyTransparency()
+    local ok, PlotsFolder = pcall(function()
+        return workspace:WaitForChild("Plots", 5)
+    end)
+    if not ok or not PlotsFolder then return end
+    for _, plot in ipairs(PlotsFolder:GetChildren()) do
+        axlProcessModel(plot)
+    end
+    PlotsFolder.ChildAdded:Connect(function(plot)
+        if AXL_ENABLED.TRANSPARENCY then axlProcessModel(plot) end
+    end)
+end
+
+if AXL_ENABLED.TRANSPARENCY then
+    task.spawn(axlApplyTransparency)
+end
+
+-- ══════════════════════
+-- RARE BRAINROT ESP
+-- ══════════════════════
+local AXL_RARE_NAMES = {
     "Strawberry Elephant","Meowl","Skibidi Toilet","Headless Horseman","Celestial Pegasus",
     "Griffin","Hydra Dragon Cannelloni","Dragon Cannelloni","Dragon Gingerini","Love Love Bear",
     "Los Nooo My Hotspotsitos","Burguro and Fryuro","La Supreme Combinasion","Rosey and Teddy",
@@ -3982,202 +6083,327 @@ local AXL_RARE = {
     "Nuclearo Dinosauro","La Grande Combinasion","Chicleteira Bicicleteira","Esok Sekolah",
     "Pot Hotspot","La Sahur Combinasion","Nacho Spyder","Brunito Marsito"
 }
-local axlDetected,axlESPObj = {},{}
-local function axlRemESP(model)
-    if axlESPObj[model] then
-        for _,o in ipairs(axlESPObj[model]) do pcall(function() o:Destroy() end) end
-        axlESPObj[model]=nil
+local axlESPDetected = {}
+local axlESPObjects  = {}
+
+local function axlRemoveESP(model)
+    if axlESPObjects[model] then
+        for _, obj in ipairs(axlESPObjects[model]) do
+            pcall(function() obj:Destroy() end)
+        end
+        axlESPObjects[model] = nil
     end
-    axlDetected[model]=nil
+    axlESPDetected[model] = nil
 end
-local function axlAddESP(model)
-    if axlDetected[model] then return end
-    axlDetected[model]=true ; axlESPObj[model]={}
-    local hrp=model:FindFirstChild("HumanoidRootPart") or model:FindFirstChildWhichIsA("BasePart")
+
+local function axlCreateESP(model)
+    if axlESPDetected[model] then return end
+    axlESPDetected[model] = true
+    axlESPObjects[model]  = {}
+    local hrp = model:FindFirstChild("HumanoidRootPart") or model:FindFirstChildWhichIsA("BasePart")
     if not hrp then return end
-    local hl=Instance.new("Highlight",model)
-    hl.FillColor=AXL.GOLD ; hl.OutlineColor=AXL.WHITE
-    hl.FillTransparency=0.5
-    table.insert(axlESPObj[model],hl)
-    local bill=Instance.new("BillboardGui",hrp)
-    bill.Size=UDim2.new(0,200,0,50) ; bill.StudsOffset=Vector3.new(0,6,0) ; bill.AlwaysOnTop=true
-    table.insert(axlESPObj[model],bill)
-    local fr=Instance.new("Frame",bill)
-    fr.Size=UDim2.new(1,0,1,0) ; fr.BackgroundColor3=Color3.fromRGB(8,8,8) ; fr.BackgroundTransparency=0.2
-    Instance.new("UICorner",fr).CornerRadius=UDim.new(0,10)
-    local st=Instance.new("UIStroke",fr) ; st.Color=AXL.GOLD ; st.Thickness=2
-    local lb=Instance.new("TextLabel",fr)
-    lb.Size=UDim2.new(1,0,1,0) ; lb.BackgroundTransparency=1
-    lb.Text="💎 نادر: "..model.Name
-    lb.TextColor3=AXL.WHITE ; lb.Font=Enum.Font.GothamBold ; lb.TextSize=13
+
+    local hl = Instance.new("Highlight", model)
+    hl.FillColor = AXL_THEME.GOLD
+    hl.OutlineColor = AXL_THEME.WHITE
+    hl.FillTransparency = 0.5
+    table.insert(axlESPObjects[model], hl)
+
+    local bill = Instance.new("BillboardGui", hrp)
+    bill.Size = UDim2.new(0, 200, 0, 50)
+    bill.StudsOffset = Vector3.new(0, 6, 0)
+    bill.AlwaysOnTop = true
+    table.insert(axlESPObjects[model], bill)
+
+    local frame = Instance.new("Frame", bill)
+    frame.Size = UDim2.new(1,0,1,0)
+    frame.BackgroundColor3 = AXL_THEME.BG
+    frame.BackgroundTransparency = 0.25
+    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 10)
+    local stroke = Instance.new("UIStroke", frame)
+    stroke.Color = AXL_THEME.GOLD
+    stroke.Thickness = 2
+
+    local label = Instance.new("TextLabel", frame)
+    label.Size = UDim2.new(1,0,1,0)
+    label.BackgroundTransparency = 1
+    label.Text = "💎 نادِر: " .. model.Name
+    label.TextColor3 = AXL_THEME.WHITE
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 13
+
     model.AncestryChanged:Connect(function()
-        if not model:IsDescendantOf(workspace) then axlRemESP(model) end
+        if not model:IsDescendantOf(workspace) then axlRemoveESP(model) end
     end)
 end
-local function axlClearESP()
-    for m in pairs(axlDetected) do axlRemESP(m) end
+
+local function axlClearAllESP()
+    for model, _ in pairs(axlESPDetected) do axlRemoveESP(model) end
 end
-local _axlTimer=0
+
+-- ESP scan loop
+local axlScanTimer = 0
 RunService.Heartbeat:Connect(function(dt)
-    _axlTimer=_axlTimer+dt
-    if _axlTimer<2 then return end ; _axlTimer=0
-    if not AXL_EN.ESP then return end
-    for _,v in ipairs(workspace:GetDescendants()) do
+    axlScanTimer = axlScanTimer + dt
+    if axlScanTimer < 2 then return end
+    axlScanTimer = 0
+    if not AXL_ENABLED.ESP_RARE then return end
+    for _, v in ipairs(workspace:GetDescendants()) do
         if v:IsA("Model") then
-            for _,n in ipairs(AXL_RARE) do
-                if v.Name==n then axlAddESP(v); break end
+            for _, name in ipairs(AXL_RARE_NAMES) do
+                if v.Name == name then axlCreateESP(v); break end
             end
         end
     end
 end)
 
--- ──── Anti-AFK ────
-local _axlLast=tick()
-UserInputService.InputBegan:Connect(function() _axlLast=tick() end)
+-- ══════════════════════
+-- ANTI-AFK
+-- ══════════════════════
+local axlLastAction = tick()
+UserInputService.InputBegan:Connect(function() axlLastAction = tick() end)
+
 task.spawn(function()
-    while true do task.wait(2)
-        if AXL_EN.AFK and tick()-_axlLast>10 then
-            local ch=player.Character ; local hm=ch and ch:FindFirstChildOfClass("Humanoid")
-            if hm then hm.Jump=true ; hm:Move(Vector3.new(math.random(-1,1),0,math.random(-1,1)),false) end
-            _axlLast=tick()
+    while true do
+        task.wait(2)
+        if AXL_ENABLED.ANTI_AFK and tick() - axlLastAction > 10 then
+            local char = player.Character
+            local hum  = char and char:FindFirstChildOfClass("Humanoid")
+            if hum then
+                hum.Jump = true
+                hum:Move(Vector3.new(math.random(-1,1), 0, math.random(-1,1)), false)
+            end
+            axlLastAction = tick()
         end
     end
 end)
 
--- ──── حركة عشوائية PathFinding ────
-local _axlMoving=false
-local function axlRandomMove()
-    if _axlMoving then return end ; _axlMoving=true
-    local ch=player.Character
-    if not ch then _axlMoving=false; return end
-    local hm=ch:FindFirstChildOfClass("Humanoid")
-    local root=ch:FindFirstChild("HumanoidRootPart")
-    if not hm or not root then _axlMoving=false; return end
-    hm.WalkSpeed=math.random(12,22)
-    local target=root.Position+Vector3.new(math.random(-200,200),0,math.random(-200,200))
-    local pfs=game:GetService("PathfindingService")
-    local path=pfs:CreatePath()
-    pcall(function() path:ComputeAsync(root.Position,target) end)
-    for _,wp in ipairs(path:GetWaypoints()) do
-        if not AXL_EN.MOVE then break end
-        hm:MoveTo(wp.Position)
-        if wp.Action==Enum.PathWaypointAction.Jump then hm.Jump=true end
-        hm.MoveToFinished:Wait()
+-- ══════════════════════
+-- RANDOM MOVE (PathFinding)
+-- ══════════════════════
+local axlIsMoving = false
+
+local function axlDoRandomMove()
+    if axlIsMoving then return end
+    axlIsMoving = true
+    local char = player.Character
+    if not char then axlIsMoving = false; return end
+    local hum  = char:FindFirstChildOfClass("Humanoid")
+    local root = char:FindFirstChild("HumanoidRootPart")
+    if not hum or not root then axlIsMoving = false; return end
+
+    hum.WalkSpeed = math.random(12, 22)
+    local target = root.Position + Vector3.new(
+        math.random(-200, 200), 0, math.random(-200, 200)
+    )
+    local PathfindingService = game:GetService("PathfindingService")
+    local path = PathfindingService:CreatePath()
+    pcall(function() path:ComputeAsync(root.Position, target) end)
+    local waypoints = path:GetWaypoints()
+    for _, wp in ipairs(waypoints) do
+        if not AXL_ENABLED.RANDOM_MOVE then break end
+        hum:MoveTo(wp.Position)
+        if wp.Action == Enum.PathWaypointAction.Jump then hum.Jump = true end
+        if math.random(1,5) == 1 then hum.Jump = true end
+        hum.MoveToFinished:Wait()
     end
-    _axlMoving=false
+    axlIsMoving = false
 end
+
 task.spawn(function()
-    while true do task.wait(5)
-        if AXL_EN.MOVE then task.spawn(axlRandomMove) end
+    while true do
+        task.wait(5)
+        if AXL_ENABLED.RANDOM_MOVE then
+            task.spawn(axlDoRandomMove)
+        end
     end
 end)
 
--- ──── UI قسم AXL ────
-createSectionHeader(_G.axlSection, "⭐  AXL BRAINROT PREMIUM")
+-- ══════════════════════════════════════════
+-- AXL SECTION UI (داخل Ken HUB)
+-- ══════════════════════════════════════════
+createSectionHeader(_G.axlSection, "⭐ AXL BRAINROT PREMIUM")
 
-local _axlWelc = Instance.new("TextLabel", _G.axlSection)
-_axlWelc.Size = UDim2.new(1,0,0,44)
-_axlWelc.BackgroundColor3 = AXL.DARK
-Instance.new("UICorner", _axlWelc).CornerRadius = UDim.new(0,10)
-Instance.new("UIStroke", _axlWelc).Color = AXL.DIM
-_axlWelc.Text = "⭐ أسود × ذهبي | بناء + ESP نوادر + حماية AFK"
-_axlWelc.Font = Enum.Font.GothamMedium ; _axlWelc.TextSize = 11
-_axlWelc.TextColor3 = AXL.GOLD ; _axlWelc.TextWrapped = true
-
--- helper toggle row لـ AXL
-local function axlToggleRow(parent, label, sub, stateKey, onEn, onDis)
+-- helper: صف toggle بداخل Ken HUB
+local function axlCreateToggleRow(parent, labelText, subText, stateKey, onEnable, onDisable)
     local row = Instance.new("Frame", parent)
-    row.Size = UDim2.new(1,0,0,58)
-    row.BackgroundColor3 = Color3.fromRGB(15,15,15)
-    Instance.new("UICorner", row).CornerRadius = UDim.new(0,10)
-    local rs = Instance.new("UIStroke", row) ; rs.Color=AXL.DIM ; rs.Thickness=1 ; rs.Transparency=0.4
+    row.Size = UDim2.new(1, 0, 0, 60)
+    row.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+    Instance.new("UICorner", row).CornerRadius = UDim.new(0, 10)
+    local rowStroke = Instance.new("UIStroke", row)
+    rowStroke.Color = AXL_THEME.GOLD_DIM
+    rowStroke.Thickness = 1
+    rowStroke.Transparency = 0.5
 
-    local lb = Instance.new("TextLabel", row)
-    lb.Size=UDim2.new(0.72,0,0,20) ; lb.Position=UDim2.new(0,10,0,8)
-    lb.BackgroundTransparency=1 ; lb.Text=label
-    lb.TextColor3=AXL.WHITE ; lb.Font=Enum.Font.GothamBold ; lb.TextSize=12
-    lb.TextXAlignment=Enum.TextXAlignment.Left
+    local lbl = Instance.new("TextLabel", row)
+    lbl.Size = UDim2.new(0.72, 0, 0, 22)
+    lbl.Position = UDim2.new(0, 10, 0, 8)
+    lbl.BackgroundTransparency = 1
+    lbl.Text = labelText
+    lbl.TextColor3 = AXL_THEME.WHITE
+    lbl.Font = Enum.Font.GothamBold
+    lbl.TextSize = 13
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
 
-    local sl = Instance.new("TextLabel", row)
-    sl.Size=UDim2.new(0.72,0,0,14) ; sl.Position=UDim2.new(0,10,0,30)
-    sl.BackgroundTransparency=1 ; sl.Text=sub
-    sl.TextColor3=AXL.SUB ; sl.Font=Enum.Font.Gotham ; sl.TextSize=10
-    sl.TextXAlignment=Enum.TextXAlignment.Left
+    local sub = Instance.new("TextLabel", row)
+    sub.Size = UDim2.new(0.72, 0, 0, 14)
+    sub.Position = UDim2.new(0, 10, 0, 34)
+    sub.BackgroundTransparency = 1
+    sub.Text = subText
+    sub.TextColor3 = AXL_THEME.SUB
+    sub.Font = Enum.Font.Gotham
+    sub.TextSize = 10
+    sub.TextXAlignment = Enum.TextXAlignment.Left
 
-    local swBG = Instance.new("Frame", row)
-    swBG.Size=UDim2.new(0,46,0,24) ; swBG.Position=UDim2.new(1,-54,0.5,-12)
-    swBG.BackgroundColor3 = AXL_EN[stateKey] and AXL.GOLD or Color3.fromRGB(45,45,45)
-    Instance.new("UICorner", swBG).CornerRadius = UDim.new(1,0)
-    local knob = Instance.new("Frame", swBG)
-    knob.Size=UDim2.new(0,19,0,19)
-    knob.Position = AXL_EN[stateKey] and UDim2.new(1,-22,0,2) or UDim2.new(0,2,0,2)
-    knob.BackgroundColor3=AXL.WHITE
-    Instance.new("UICorner", knob).CornerRadius = UDim.new(1,0)
+    -- Switch
+    local switchBG = Instance.new("Frame", row)
+    switchBG.Size = UDim2.new(0, 46, 0, 26)
+    switchBG.Position = UDim2.new(1, -56, 0.5, -13)
+    switchBG.BackgroundColor3 = AXL_ENABLED[stateKey] and AXL_THEME.GOLD or Color3.fromRGB(55,55,55)
+    Instance.new("UICorner", switchBG).CornerRadius = UDim.new(1, 0)
 
-    local function doT()
-        AXL_EN[stateKey]=not AXL_EN[stateKey]
-        local on=AXL_EN[stateKey]
-        TweenService:Create(swBG,TweenInfo.new(.15),{BackgroundColor3=on and AXL.GOLD or Color3.fromRGB(45,45,45)}):Play()
-        TweenService:Create(knob,TweenInfo.new(.15),{Position=on and UDim2.new(1,-22,0,2) or UDim2.new(0,2,0,2)}):Play()
-        if on and onEn then pcall(onEn) end
-        if not on and onDis then pcall(onDis) end
+    local knob = Instance.new("Frame", switchBG)
+    knob.Size = UDim2.new(0, 20, 0, 20)
+    knob.Position = AXL_ENABLED[stateKey]
+        and UDim2.new(1, -23, 0.5, -10)
+        or  UDim2.new(0, 3, 0.5, -10)
+    knob.BackgroundColor3 = AXL_THEME.WHITE
+    Instance.new("UICorner", knob).CornerRadius = UDim.new(1, 0)
+
+    local function doToggle()
+        AXL_ENABLED[stateKey] = not AXL_ENABLED[stateKey]
+        local on = AXL_ENABLED[stateKey]
+        TweenService:Create(switchBG, TweenInfo.new(0.18), {
+            BackgroundColor3 = on and AXL_THEME.GOLD or Color3.fromRGB(55,55,55)
+        }):Play()
+        TweenService:Create(knob, TweenInfo.new(0.18), {
+            Position = on and UDim2.new(1,-23,0.5,-10) or UDim2.new(0,3,0.5,-10)
+        }):Play()
+        if on and onEnable then pcall(onEnable) end
+        if not on and onDisable then pcall(onDisable) end
     end
-    local hit=Instance.new("TextButton",row)
-    hit.Size=UDim2.new(1,0,1,0) ; hit.BackgroundTransparency=1 ; hit.Text=""
-    hit.MouseButton1Click:Connect(doT) ; hit.TouchTap:Connect(doT)
+
+    local hit = Instance.new("TextButton", row)
+    hit.Size = UDim2.new(1,0,1,0)
+    hit.BackgroundTransparency = 1
+    hit.Text = ""
+    hit.MouseButton1Click:Connect(doToggle)
+    hit.TouchTap:Connect(doToggle)
 end
 
--- helper زر AXL
-local function axlBtn(parent, txt, col, cb)
-    local btn=Instance.new("TextButton", parent)
-    btn.Size=UDim2.new(1,0,0,40) ; btn.BackgroundColor3=Color3.fromRGB(15,15,15)
-    btn.Text=txt ; btn.TextColor3=col or AXL.GOLD
-    btn.Font=Enum.Font.GothamBold ; btn.TextSize=13 ; btn.AutoButtonColor=false
-    Instance.new("UICorner", btn).CornerRadius=UDim.new(0,10)
-    local bs=Instance.new("UIStroke", btn) ; bs.Color=col or AXL.GOLD ; bs.Thickness=1 ; bs.Transparency=0.35
-    btn.MouseButton1Click:Connect(function() if cb then pcall(cb) end end)
-    btn.TouchTap:Connect(function() if cb then pcall(cb) end end)
+-- helper: action button داخل Ken HUB
+local function axlActionBtn(parent, text, color, action)
+    local btn = Instance.new("TextButton", parent)
+    btn.Size = UDim2.new(1, 0, 0, 38)
+    btn.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+    btn.Text = text
+    btn.TextColor3 = color or AXL_THEME.GOLD
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 13
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 10)
+    local s = Instance.new("UIStroke", btn)
+    s.Color = color or AXL_THEME.GOLD
+    s.Thickness = 1
+    s.Transparency = 0.4
+    btn.MouseButton1Click:Connect(function()
+        if action then action() end
+    end)
+    btn.TouchTap:Connect(function()
+        if action then action() end
+    end)
+    return btn
 end
 
-createSectionHeader(_G.axlSection, "🔧  تحكم الميزات")
+-- ══ رسالة ترحيب AXL ══
+local axlWelcome = Instance.new("TextLabel", _G.axlSection)
+axlWelcome.Size = UDim2.new(1, 0, 0, 46)
+axlWelcome.BackgroundTransparency = 1
+axlWelcome.Text = "⭐ مرحبًا في AXL PREMIUM\nأسود وذهبي | بناء + ESP + حماية"
+axlWelcome.TextColor3 = AXL_THEME.GOLD_DIM
+axlWelcome.Font = Enum.Font.Gotham
+axlWelcome.TextSize = 12
+axlWelcome.TextWrapped = true
+axlWelcome.TextXAlignment = Enum.TextXAlignment.Left
 
-axlToggleRow(_G.axlSection, "🏗️  AXL Build System", "بناء سينمائي 360° بالدرج",
-    "BUILD", function() axlBuild() end, function() axlClear() end)
-axlToggleRow(_G.axlSection, "🌫️  شفافية البلوت", "إخفاء Side/Base/Home",
-    "TRANS", function() task.spawn(axlApplyTrans) end, nil)
-axlToggleRow(_G.axlSection, "💎  ESP النوادر الذهبي", "رصد 32 براينروت نادر",
-    "ESP", nil, function() axlClearESP() end)
-axlToggleRow(_G.axlSection, "🛡️  Anti-AFK", "حماية من الطرد التلقائي",
-    "AFK", nil, nil)
-axlToggleRow(_G.axlSection, "🤖  حركة عشوائية", "تجول ذكي PathFinding",
-    "MOVE", nil, nil)
+-- ══ Toggles ══
+createSectionHeader(_G.axlSection, "🔧 تحكم الميزات")
 
-createSectionHeader(_G.axlSection, "🚀  أوامر سريعة")
-axlBtn(_G.axlSection, "🚀  ابنِ الخريطة الآن", AXL.GREEN, axlBuild)
-axlBtn(_G.axlSection, "🗑️  احذف الخريطة",      AXL.RED,   axlClear)
-axlBtn(_G.axlSection, "👁️  أعد رصد النوادر",   AXL.GOLD,  function()
-    axlClearESP() ; axlDetected={} ; axlESPObj={}
+axlCreateToggleRow(_G.axlSection,
+    "🏗️ AXL Build System",
+    "بناء سينمائي 360° بالدرج",
+    "BUILD",
+    function() axlStartBuild() end,
+    function() axlClearBuild() end
+)
+
+axlCreateToggleRow(_G.axlSection,
+    "🌫️ شفافية الـ Plots",
+    "إخفاء جدران Side/Base/Home",
+    "TRANSPARENCY",
+    function() task.spawn(axlApplyTransparency) end,
+    nil
+)
+
+axlCreateToggleRow(_G.axlSection,
+    "💎 ESP النوادر الذهبي",
+    "رصد 32 براينروت نادر",
+    "ESP_RARE",
+    nil,
+    function() axlClearAllESP() end
+)
+
+axlCreateToggleRow(_G.axlSection,
+    "🛡️ Anti-AFK",
+    "حماية من الطرد التلقائي",
+    "ANTI_AFK",
+    nil, nil
+)
+
+axlCreateToggleRow(_G.axlSection,
+    "🤖 حركة عشوائية",
+    "تجول ذكي بـ PathFinding",
+    "RANDOM_MOVE",
+    nil, nil
+)
+
+-- ══ أزرار الأكشن ══
+createSectionHeader(_G.axlSection, "🚀 أوامر سريعة")
+
+axlActionBtn(_G.axlSection, "🚀 ابنِ الخريطة الآن", AXL_THEME.GREEN, function()
+    axlStartBuild()
 end)
-axlBtn(_G.axlSection, "🌫️  طبّق الشفافية الآن", AXL.WHITE, function()
-    task.spawn(axlApplyTrans)
+
+axlActionBtn(_G.axlSection, "🗑️ احذف الخريطة", AXL_THEME.RED, function()
+    axlClearBuild()
 end)
 
+axlActionBtn(_G.axlSection, "👁️ أعد رصد النوادر", AXL_THEME.GOLD, function()
+    axlClearAllESP()
+    axlESPDetected = {}
+    axlESPObjects  = {}
+end)
 
--- ══════════════════════════════════════════════════════
--- تهيئة الواجهة + نظام الحفظ والاستعادة
--- ══════════════════════════════════════════════════════
+axlActionBtn(_G.axlSection, "🌫️ طبّق الشفافية الآن", AXL_THEME.WHITE, function()
+    task.spawn(axlApplyTransparency)
+end)
+
+-- ══════════════════════════════════════════
+-- END AXL PREMIUM SECTION
+-- ══════════════════════════════════════════
+
 local function initialize()
     local success, _ = pcall(function()
-        -- فتح قسم الرئيسية افتراضياً
-        if tabActivators["الرئيسية"] then
-            tabActivators["الرئيسية"]()
-        else
-            -- fallback
-            activeSection = "الرئيسية"
-            sections["الرئيسية"].Visible = true
+        -- Default tab already activated above (Home) by new tab system
+        -- Legacy compat: keep activeSection in sync
+        if not activeSection then
+            activeSection = "Home"
+            if sections["Home"] then sections["Home"].Visible = true end
         end
+        -- ActiveFeatures removed
+        
+        -- Toggle states will be restored at the end of the script
 
-        -- مراقبة البلوت تلقائياً
+        -- Ensure plot is rechecked periodically
         task.spawn(function()
             while true do
                 if not playerPlot or not playerPlot.Parent then
@@ -4186,143 +6412,180 @@ local function initialize()
                 task.wait(2)
             end
         end)
-
-        -- حفظ الحالة كل ثانيتين
+        
+        -- Save UI state periodically
         task.spawn(function()
             while true do
                 _G.saveUIState()
-                task.wait(2)
+                task.wait(2) -- Save UI state every 2 seconds
             end
         end)
     end)
-    if not success then warn("Failed to initialize UI") end
+    if not success then
+        warn("Failed to initialize UI")
+    end
 end
 
 initialize()
 
--- ══════════════════════════════════════════════════════
--- تنظيف عند إغلاق
--- ══════════════════════════════════════════════════════
+--=========================================================
+-- Cleanup on Script End
+--=========================================================
 game:BindToClose(function()
-    pcall(function()
+    local success, _ = pcall(function()
+        -- Disable all features
         if _G.ESP_Enabled then disableESP() end
         if _G.PlotESP_Enabled then disablePlotESP() end
         if isServerHopActive then toggleServerHop(false) end
-        if jumpSwitch and jumpSwitch.get and jumpSwitch.get() then jumpSwitch.set(false) end
-        if speedSwitch and speedSwitch.get and speedSwitch.get() then speedSwitch.set(false) end
-        if invisibilitySwitch and invisibilitySwitch.get and invisibilitySwitch.get() then setInvisibility(false) end
+        if jumpSwitch and jumpSwitch.get and jumpSwitch.set then
+        if jumpSwitch.get() then jumpSwitch.set(false) end
+        end
+        if speedSwitch and speedSwitch.get and speedSwitch.set then
+        if speedSwitch.get() then speedSwitch.set(false) end
+        end
+        if invisibilitySwitch and invisibilitySwitch.get then
+        if invisibilitySwitch.get() then setInvisibility(false) end
+        end
+        if unhittableSwitchInstance and unhittableSwitchInstance.get and unhittableSwitchInstance.set then
+        if unhittableSwitchInstance.get() then unhittableSwitchInstance.set(false) end
+        end
+        if resizeSwitchInstance and resizeSwitchInstance.get and resizeSwitchInstance.set then
+        if resizeSwitchInstance.get() then resizeSwitchInstance.set(false) end
+        end
+        if flingSwitchInstance and flingSwitchInstance.get and flingSwitchInstance.set then
+        if flingSwitchInstance.get() then flingSwitchInstance.set(false) end
+        end
+        if CloneFlight_Enabled then disableCloneFlight() end
+        if isCarpetMode then toggleCarpetMode(false) end
         if isLaserCapeFiring then disableLaserCape() end
+        -- Disable Desync features
         if _G.mobileDesyncEnabled then disableMobileDesync() end
+        -- Disable Ragdoll Desync
+        if CONFIG.Movement.RagdollDesync and CONFIG.Movement.RagdollDesync.Enabled then disableRagdollDesync() end
+        -- Disable Brainrot ESP
         if CONFIG.ESP.BrainrotESP.Enabled then disableBrainrotESP() end
     end)
+    if not success then
+        warn("Failed to clean up on script close")
+    end
 end)
 
--- ══════════════════════════════════════════════════════
--- ULTRA-COMPACT ESP (نسخ من الأصلي)
--- ══════════════════════════════════════════════════════
+-- ===== ULTRA-COMPACT ESP =====
 _G.ESP = {suffixes={K=1e3,M=1e6,B=1e9,T=1e12,Qa=1e15,Qi=1e18},current={overhead=nil,modelHighlight=nil,partHighlight=nil,maxVal=-1,owner=nil},playerHighlights={}}
 
 function _G.parseGen(text)
     if not text then return 0 end
     text = text:match("^%$(.+)") or text
-    text = text:gsub("/S$",""):gsub(",","")
+    text = text:gsub("/S$", ""):gsub(",", "")
     local num = tonumber(text:match("^[%d%.]+")) or 0
     local suffix = text:match("[%a]+")
-    return suffix and _G.ESP.suffixes[suffix] and num*_G.ESP.suffixes[suffix] or num
+    return suffix and _G.ESP.suffixes[suffix] and num * _G.ESP.suffixes[suffix] or num
 end
 
 function _G.clearVisuals()
-    if _G.ESP.current.modelHighlight then _G.ESP.current.modelHighlight:Destroy(); _G.ESP.current.modelHighlight=nil end
-    if _G.ESP.current.partHighlight then _G.ESP.current.partHighlight:Destroy(); _G.ESP.current.partHighlight=nil end
+    if _G.ESP.current.modelHighlight then _G.ESP.current.modelHighlight:Destroy() _G.ESP.current.modelHighlight = nil end
+    if _G.ESP.current.partHighlight then _G.ESP.current.partHighlight:Destroy() _G.ESP.current.partHighlight = nil end
 end
 
 function _G.updateHighest()
-    local plots = workspace:FindFirstChild("Plots")
+    local plots = Workspace:FindFirstChild("Plots")
     if not plots then return end
     _G.clearVisuals()
-    local bestVal,bestOverhead,bestOwner = -1,nil,nil
-    for _,plot in ipairs(plots:GetChildren()) do
+    local bestVal, bestOverhead, bestOwner = -1, nil, nil
+    for _, plot in ipairs(plots:GetChildren()) do
         if plot:IsA("Model") or plot:IsA("Folder") then
             local plotBest = -1
-            for _,obj in ipairs(plot:GetDescendants()) do
-                if obj.Name=="AnimalOverhead" and obj:IsA("BillboardGui") then
+            for _, obj in ipairs(plot:GetDescendants()) do
+                if obj.Name == "AnimalOverhead" and obj:IsA("BillboardGui") then
                     local gen = obj:FindFirstChild("Generation")
                     if gen and gen:IsA("TextLabel") then
                         local val = _G.parseGen(gen.Text)
-                        if val>plotBest then plotBest=val; bestOverhead=obj end
+                        if val > plotBest then plotBest, bestOverhead = val, obj end
                     end
                 end
             end
-            if bestOverhead and plotBest>bestVal then
-                local sign = plot:FindFirstChild("PlotSign",true)
-                local label = sign and sign:FindFirstChildWhichIsA("TextLabel",true)
-                local owner = label and label.Text:gsub("[''']s$",""):gsub("%s+$","")
-                if owner and string.lower(owner)~=string.lower(player.Name) then
-                    bestVal=plotBest; bestOwner=owner
+            if bestOverhead and plotBest > bestVal then
+                local sign = plot:FindFirstChild("PlotSign", true)
+                local label = sign and sign:FindFirstChildWhichIsA("TextLabel", true)
+                local owner = label and label.Text:gsub("[''']s$", ""):gsub("%s+$", "")
+                if owner and string.lower(owner) ~= string.lower(player.Name) then
+                    bestVal, bestOwner = plotBest, owner
                 end
             end
         end
     end
     if not bestOverhead then return end
-    _G.ESP.current.overhead=bestOverhead; _G.ESP.current.maxVal=bestVal; _G.ESP.current.owner=bestOwner
-    local displayName=bestOverhead:FindFirstChild("DisplayName")
+    _G.ESP.current.overhead, _G.ESP.current.maxVal, _G.ESP.current.owner = bestOverhead, bestVal, bestOwner
+    local displayName = bestOverhead:FindFirstChild("DisplayName")
     if not displayName then return end
-    local parent=bestOverhead.Parent
-    for _=1,4 do parent=parent and parent.Parent end
-    local target=nil
+    local parent = bestOverhead.Parent
+    for _=1,4 do parent = parent and parent.Parent end
+    local target = nil
     for i=0,2 do
-        local candidate=parent
-        for _=1,i do candidate=candidate and candidate.Parent end
+        local candidate = parent
+        for _=1,i do candidate = candidate and candidate.Parent end
         if candidate then
-            local child=candidate:FindFirstChild(displayName.Text)
-            if child then target=child; break end
+            local child = candidate:FindFirstChild(displayName.Text)
+            if child then target = child break end
         end
     end
     if not target then return end
-    local highlight=Instance.new("Highlight")
-    highlight.Adornee=target; highlight.FillTransparency=0.75; highlight.FillColor=Color3.fromRGB(255,0,0)
-    highlight.OutlineTransparency=0; highlight.OutlineColor=Color3.fromRGB(255,0,0)
-    highlight.Parent=target
-    _G.ESP.current.modelHighlight=highlight
-    local part=target:IsA("BasePart") and target or target:FindFirstChildWhichIsA("BasePart",true)
+    local highlight = Instance.new("Highlight")
+    highlight.Adornee, highlight.FillTransparency, highlight.FillColor = target, 0.75, Color3.fromRGB(255,0,0)
+    highlight.OutlineTransparency, highlight.OutlineColor = 0, Color3.fromRGB(255,0,0)
+    highlight.Parent = target
+    _G.ESP.current.modelHighlight = highlight
+    local part = target:IsA("BasePart") and target or target:FindFirstChildWhichIsA("BasePart", true)
     if part then
-        local ph=Instance.new("Highlight")
-        ph.Adornee=part; ph.FillTransparency=0.75; ph.FillColor=Color3.fromRGB(255,0,0)
-        ph.OutlineTransparency=0; ph.OutlineColor=Color3.fromRGB(255,0,0)
-        ph.Parent=workspace
-        _G.ESP.current.partHighlight=ph
+        local partHighlight = Instance.new("Highlight")
+        partHighlight.Adornee, partHighlight.FillTransparency, partHighlight.FillColor = part, 0.75, Color3.fromRGB(255,0,0)
+        partHighlight.OutlineTransparency, partHighlight.OutlineColor = 0, Color3.fromRGB(255,0,0)
+        partHighlight.Parent = Workspace
+        _G.ESP.current.partHighlight = partHighlight
     end
 end
 
 task.spawn(function()
-    while true do _G.updateHighest(); task.wait(2) end
+    while true do
+        _G.updateHighest()
+        task.wait(2)
+    end
 end)
 
-for _,plr in ipairs(Players:GetPlayers()) do
-    if plr~=player and plr.Character then
-        local hl=Instance.new("Highlight")
-        hl.Adornee=plr.Character; hl.FillColor=Color3.fromRGB(173,216,230)
-        hl.FillTransparency=0.75; hl.OutlineTransparency=0
-        hl.OutlineColor=Color3.fromRGB(173,216,230); hl.Parent=plr.Character
-        _G.ESP.playerHighlights[plr]=hl
+for _, plr in ipairs(Players:GetPlayers()) do
+    if plr ~= player and plr.Character then
+        local highlight = Instance.new("Highlight")
+        highlight.Adornee, highlight.FillColor = plr.Character, Color3.fromRGB(173, 216, 230)
+        highlight.FillTransparency, highlight.OutlineTransparency = 0.75, 0
+        highlight.OutlineColor, highlight.Parent = Color3.fromRGB(173, 216, 230), plr.Character
+        _G.ESP.playerHighlights[plr] = highlight
     end
 end
 
--- ══════════════════════════════════════════════════════
--- استعادة حالات التوقل عند التشغيل
--- ══════════════════════════════════════════════════════
-task.wait(2)
-pcall(function() _G.saveUIState() end)
+-- Test save system on startup
+task.wait(2) -- Wait for UI to be created
+pcall(function()
+_G.saveUIState()
+end)
 
+-- Periodic Settings Save System (Every 3 seconds)
 task.spawn(function()
-    while true do task.wait(3)
-        pcall(function() _G.saveUIState() end)
+    while true do
+        task.wait(3)
+        pcall(function()
+        _G.saveUIState()
+        end)
     end
 end)
 
-task.wait(1)
-pcall(function() _G.applyLoadedToggleStates() end)
+--- Restore toggle states after ALL switches are created
+task.wait(1) -- Wait a moment for all switches to be fully initialized
+pcall(function()
+_G.applyLoadedToggleStates()
+end)
 
-task.wait(0.5)
-pcall(function() _G.saveUIState() end)
-
+-- Save current UI state to ensure persistent toggles are saved
+task.wait(0.5) -- Small delay to ensure everything is loaded
+pcall(function()
+_G.saveUIState()
+end)
